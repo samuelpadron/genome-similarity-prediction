@@ -9,15 +9,11 @@ cd "$SCRIPT_DIR" || exit 1
 source ../.env 2> /dev/null || source .env
 
 # default directory to save files in
-DIR="$SCRIPT_DIR"/../data/cifar10
+DIR="$SCRIPT_DIR"/../data/pair_aligments
 mkdir -p "$DIR"
 
 # download tar file
-curl -C - https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz --output "$DIR"/cifar-10-python.tar.gz
-
+curl -LJ0 https://raw.githubusercontent.com/samuelpadron/DNA_alignment_similarity_CSV/pair_alignment/true.csv -o "$DIR/true.csv"
+curl -LJ0 https://raw.githubusercontent.com/samuelpadron/DNA_alignment_similarity_CSV/pair_alignment/false.csv -o "$DIR/false.csv"
 # extract tar file
 tar xfv "$DIR"/cifar-10-python.tar.gz -C "$DIR"
-
-# move data out of "ugly" `cifar-10-batches-py` folder
-mv "$DIR"/cifar-10-batches-py/* "$DIR"
-rmdir "$DIR"/cifar-10-batches-py
