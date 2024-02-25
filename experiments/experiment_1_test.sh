@@ -1,11 +1,13 @@
 #!/bin/bash -e
-#SBATCH --partion=csedu
+#SBATCH --account=cseduproject
+#SBATCH --partition=csedu-prio,csedu
 #SBATCH --gres=gpu:1
-#SBATCH --mem=10G
+#SBATCH --qos=csedu-small
 #SBATCH --cpus-per-task=1
 #SBATCH --time=1:00:00
-#SBATCH --account=cseduproject
 #SBATCH --mail-user=samuel.padronalcala@ru.nl
+#SBATCH --output=experiment_1_test_%j.out
+#SBATCH --error=experiment_1_test_%j.err
 #SBATCH --mail-type=END,FAIL
 
-echo "This experiment should work"
+nvidia-smi

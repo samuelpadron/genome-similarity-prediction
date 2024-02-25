@@ -11,7 +11,5 @@ TARGET_DIR=$SCRIPT_DIR/../logs/cluster
 mkdir -p "$TARGET_DIR"
 
 # rsync remote logs
-echo "line 13 in this script requires your science.ru.nl username"; exit 0 # delete line once you've set the username
-echo "line 14 in this script requires your path to the log folder on the cluster"; exit 0 # delete line once you've set the correct path
-USERNAME=nvaessen
-rsync -azP "$USERNAME"@cn99.science.ru.nl:/ceph/das-scratch/users/$USERNAME/"$PROJECT_NAME"/logs "$TARGET_DIR"
+USERNAME=spadronalcala
+rsync -azP "$USERNAME"@cn99.science.ru.nl:/ceph/csedu-scratch/users/$USERNAME/"$POJECT_NAME"/logs "$TARGET_DIR"
