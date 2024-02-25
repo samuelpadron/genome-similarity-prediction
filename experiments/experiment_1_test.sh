@@ -10,4 +10,4 @@
 #SBATCH --error=experiment_1_test_%j.err
 #SBATCH --mail-type=END,FAIL
 
-nvidia-smi
+python -m train wandb=null experiment=hg38/genomic_benchamrk_scratch
