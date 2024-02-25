@@ -6,8 +6,9 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --time=1:00:00
 #SBATCH --mail-user=samuel.padronalcala@ru.nl
-#SBATCH --output=experiment_1_test_%j.out
-#SBATCH --error=experiment_1_test_%j.err
-#SBATCH --mail-type=END,FAIL
+#SBATCH --output=%j.out
+#SBATCH --error=%j.err
+#SBATCH --mail-type=END
 
-python -m train wandb=null experiment=hg38/genomic_benchamrk_scratch
+source "./venv/bin/activate"
+python -m train wandb=null experiment=hg38/genomic_benchmark_scratch
