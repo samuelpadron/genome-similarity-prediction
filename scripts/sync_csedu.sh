@@ -1,7 +1,7 @@
 run_rsync() {
   echo started syncing to node "$1"
-  srun -p csedu-prio -w "$1" --qos csedu-small mkdir -p /scratch/"$USER"
-  srun -p csedu-prio -w "$1" --qos csedu-small rsync cn84:/scratch/"$USER"/virtual_environments/ /scratch/"$USER"/virtual_environments/ -ah --delete
+  srun -p csedu-prio -w "$1" --qos csedu-small -A cseduproject mkdir -p /scratch/"$USER"
+  srun -p csedu-prio -w "$1" --qos csedu-small -A cseduproject rsync cn84:/scratch/"$USER"/virtual_environments/ /scratch/"$USER"/virtual_environments/ -ah --delete
   echo completed syncing to node "$1"
 }
 

@@ -10,5 +10,14 @@
 #SBATCH --error=%j.err
 #SBATCH --mail-type=END
 
-source "./venv/bin/activate"
+project_dir=.
+
+source "$project_dir"/venv/bin/activate
+
+cd "$project_dir"/flash-attention/
+
+pip install -e .
+
+cd ..
+
 python -m train wandb=null experiment=hg38/genomic_benchmark_scratch
