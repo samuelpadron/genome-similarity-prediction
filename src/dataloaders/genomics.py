@@ -214,6 +214,9 @@ class HG38(SequenceDataset):
             self.fast_forward_batches = checkpoint['loops']['fit_loop']['epoch_loop.batch_progress']['current']['completed']
         # At this point the train loader hasn't been constructed yet
 
+class PairAlignment(HG38):
+    _name_= "pair_alignment"
+    l_output = 0  # need to set this for decoder to work correctly
 
 class GenomicBenchmark(HG38):
     _name_ = "genomic_benchmark"

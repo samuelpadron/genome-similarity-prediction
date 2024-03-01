@@ -1,6 +1,5 @@
 import torch
 from torch.utils.data import DataLoader
-from torchtext import datasets, transforms
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
@@ -27,13 +26,6 @@ class SequencePairSimilarityDataset(torch.utils.data.Dataset):
     seq1 = seq_pair['sequence_1']
     seq2 = seq_pair['sequence_2']
     label = seq_pair['label']
-
-    # #check sequences
-    # print("sequence 1:", seq1)
-    # print("sequence 2:", seq2)
-    # print("label: ", label)
-    # print("__________________________________________________________________")
-
 
     seq1 = self.tokenizer(seq1,
             add_special_tokens=False,
