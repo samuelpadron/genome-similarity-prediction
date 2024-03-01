@@ -13,11 +13,4 @@
 project_dir=.
 
 source "$project_dir"/venv/bin/activate
-
-cd "$project_dir"/flash-attention/
-
-pip install -e .
-
-cd ..
-
-python -m train wandb=null experiment=hg38/genomic_benchmark_scratch
+python -m train wandb=null experiment=hg38/genomic_benchmark_scratch model.fused_dropout_add_ln=False 

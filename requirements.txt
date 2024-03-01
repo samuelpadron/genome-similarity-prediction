@@ -19,6 +19,7 @@ timm
 prettytable
 numerize
 git-lfs
+flash_attn
 
 # Dataset specific packages
 torchtext==0.14.0 # this needs to align with the pytorch version

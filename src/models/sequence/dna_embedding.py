@@ -1,6 +1,9 @@
 from functools import partial
 import torch
 import torch.nn as nn
+import sys
+
+import flash_attn
 
 from flash_attn.utils.generation import GenerationMixin
 from flash_attn.utils.distributed import sync_shared_params
