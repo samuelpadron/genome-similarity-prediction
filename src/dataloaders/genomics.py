@@ -1,8 +1,10 @@
 # Adapted from https://github.com/huggingface/transformers/blob/master/examples/pytorch/language-modeling/run_clm.py
 # Adapted from https://github.com/HazyResearch/flash-attention/blob/main/training/src/datamodules/language_modeling_hf.py
+import pandas as pd
 from pathlib import Path
 from typing import Any, List, Union
 from torch.utils.data.dataloader import DataLoader, Dataset
+from sklearn.model_selection import train_test_split
 from transformers import AutoTokenizer
 from datasets import Dataset
 
@@ -18,6 +20,7 @@ from src.dataloaders.datasets.chromatin_profile_dataset import ChromatinProfileD
 from src.dataloaders.datasets.species_dataset import SpeciesDataset
 from src.dataloaders.datasets.icl_genomics_dataset import ICLGenomicsDataset
 from src.dataloaders.datasets.hg38_fixed_dataset import HG38FixedDataset
+from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilarityDataset
 
 
 """
@@ -217,6 +220,125 @@ class HG38(SequenceDataset):
 class PairAlignment(HG38):
     _name_= "pair_alignment"
     l_output = 0  # need to set this for decoder to work correctly
+    
+    def __init__(self, dataset_name, dest_path=None, tokenizer_name='char', d_output=None, rc_aug=False,
+            max_length=1024, use_padding=True, max_length_val=None, max_length_test=None,
+            padding_side='left', return_mask=False, val_ratio=0.0005, val_split_seed=2357, add_eos=False, 
+            detokenize=False, val_only=False, batch_size=32, batch_size_eval=None, num_workers=1,
+            shuffle=True, pin_memory=False, drop_last=False, fault_tolerant=False, ddp=False,
+            fast_forward_epochs=None, fast_forward_batches=None, *args, **kwargs):
+
+        self.dataset_name = dataset_name
+        self.dest_path = dest_path
+        self.tokenizer_name = tokenizer_name
+        self.d_output = d_output
+        self.rc_aug = rc_aug
+        self.max_length = max_length
+        self.use_padding = use_padding
+        self.max_length_val = max_length_val if max_length_val is not None else max_length
+        self.max_length_test = max_length_test if max_length_test is not None else max_length
+        self.padding_side = padding_side
+        self.return_mask = return_mask
+        self.val_ratio = val_ratio
+        self.val_split_seed = val_split_seed
+        self.val_only = val_only
+        self.add_eos = add_eos
+        self.detokenize = detokenize
+        self.batch_size = batch_size
+        self.batch_size_eval = batch_size_eval if batch_size_eval is not None else self.batch_size
+        self.num_workers = num_workers
+        self.shuffle = shuffle
+        self.pin_memory = pin_memory
+        self.drop_last = drop_last
+
+        if self.dest_path is None:
+            self.dest_path = default_data_path / self._name_
+
+        if fault_tolerant:
+            assert self.shuffle
+        self.fault_tolerant = fault_tolerant
+        if ddp:
+            assert fault_tolerant
+        self.ddp = ddp
+        self.fast_forward_epochs = fast_forward_epochs
+        self.fast_forward_batches = fast_forward_batches
+        if self.fast_forward_epochs is not None or self.fast_forward_batches is not None:
+            assert ddp and fault_tolerant
+            
+    class DatasetSplitter:
+
+        def __init__(self, split_ratio, csv_dir):
+            self.split_ratio = split_ratio
+            self.csv_dir = csv_dir
+            self.data = self.set_split(self.split_ratio, self.setup_data())
+
+        def set_split(self, split_ratio, data: pd.DataFrame):
+
+            label_true = data[data['label'] == 1]
+            label_false = data[data['label'] == 0]
+
+            # shuffle since first half of the dataset is all true and the second half all false
+            train_label_true, test_label_true = train_test_split(label_true, train_size=split_ratio, shuffle=True)
+            train_label_false, test_label_false = train_test_split(label_false, train_size=split_ratio, shuffle=True)
+
+            train_data = pd.concat([train_label_true, train_label_false])
+
+            test_data = pd.concat([test_label_true, test_label_false])
+
+            return train_data, test_data
+
+
+        def setup_data(self):
+            data_true = pd.read_csv(self.csv_dir + '/true.csv').drop(['blastz_score'], axis=1) #not needed for now
+            data_true['label'] = 1
+            data_false = pd.read_csv(self.csv_dir + '/false.csv')
+            data_false['label'] = 0
+
+            return pd.concat([data_true, data_false])
+            
+    def setup(self, stage=None):
+        # TODO instantiate with registry
+
+        if self.tokenizer_name == 'char':
+            print("**Using Char-level tokenizer**")
+            self.tokenizer = CharacterTokenizer(
+                characters=['A', 'C', 'G', 'T', 'N'],
+                model_max_length=self.max_length + 2,  # add 2 since default adds eos/eos tokens, crop later
+                add_special_tokens=False,
+                padding_side=self.padding_side,
+            )
+            
+        dataset = DatasetSplitter(0.8, '/data/DNA_alignment_similarity_CSV/pair_alignment') #fix this path
+        train_data, test_data = dataset.data
+        print(train_data)
+
+        ds_train = SequencePairSimilarityDataset(
+            train_data,
+            max_length =self.max_length,
+            tokenizer=self.tokenizer,
+            use_padding= self.use_padding,
+            add_eos=self.add_eos
+        )
+
+        ds_test = SequencePairSimilarityDataset(
+            test_data,
+            max_length = self.max_length,
+            tokenizer=self.tokenizer,
+            use_padding= self.use_padding,
+            add_eos=self.add_eos
+        )
+
+        train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+        test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=False)
+            
+    def val_dataloader(self, *args: Any, **kwargs: Any) -> Union[DataLoader, List[DataLoader]]:
+        """ The val dataloader """
+        return self._data_loader(self.dataset_val, batch_size=self.batch_size_eval, shuffle=self.shuffle_eval)
+
+    def test_dataloader(self, *args: Any, **kwargs: Any) -> Union[DataLoader, List[DataLoader]]:
+        """ The test dataloader """
+        # note: we're combining val/test into one
+        return self._data_loader(self.dataset_val, batch_size=self.batch_size_eval, shuffle=self.shuffle_eval)
 
 class GenomicBenchmark(HG38):
     _name_ = "genomic_benchmark"
