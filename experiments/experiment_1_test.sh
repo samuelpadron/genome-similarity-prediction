@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #SBATCH --account=cseduproject
-#SBATCH --partition=csedu-prio,csedu
+#SBATCH --partition=csedu
 #SBATCH --gres=gpu:1
 #SBATCH --qos=csedu-small
 #SBATCH --cpus-per-task=1
@@ -13,4 +13,4 @@
 project_dir=.
 
 source "$project_dir"/venv/bin/activate
-python -m train wandb=null experiment=hg38/genomic_benchmark_scratch model.fused_dropout_add_ln=False 
+python -m train wandb=null experiment=hg38/pair_alignment_load_finetune_model
