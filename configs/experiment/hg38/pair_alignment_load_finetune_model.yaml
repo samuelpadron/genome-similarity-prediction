@@ -81,7 +81,7 @@ train:
   gpu_mem: ${eval:"round(float(__import__('subprocess').check_output('nvidia-smi -i 0 --query-gpu=memory.total --format=csv,noheader,nounits', shell=True).strip().decode()) / 1000)"}
   seed: 2222
   global_batch_size: 32
-  remove_test_loader_in_eval: False  # no test set in this benchmark
+  remove_test_loader_in_eval: False  # there is a test set in this benchmark
   pretrained_model_strict_load: False  # false allows encoder/decoder to be used if new model uses it
   # for loading backbone and not head, requires both of these flags below
   pretrained_model_path: /home/spadronalcala/Documents/thesis/hyenadna-small-32k-seqlen/weights.ckpt
