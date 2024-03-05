@@ -22,7 +22,6 @@ from src.dataloaders.datasets.icl_genomics_dataset import ICLGenomicsDataset
 from src.dataloaders.datasets.hg38_fixed_dataset import HG38FixedDataset
 from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilarityDataset
 
-
 """
 
 Dataloaders for genomics datasets, including pretraining and downstream tasks.  First works in HyenaDNA project, May 2023.
@@ -287,11 +286,10 @@ class PairAlignment(HG38):
 
             return train_data, test_data
 
-
         def setup_data(self):
-            data_true = pd.read_csv(self.csv_dir + '/true.csv').drop(['blastz_score'], axis=1) #not needed for now
+            data_true = pd.read_csv(Path(self.csv_dir) / 'true.csv').drop(['blastz_score'], axis=1) #not needed for now
             data_true['label'] = 1
-            data_false = pd.read_csv(self.csv_dir + '/false.csv')
+            data_false = pd.read_csv(Path(self.csv_dir) / 'false.csv')
             data_false['label'] = 0
 
             return pd.concat([data_true, data_false])
@@ -308,11 +306,16 @@ class PairAlignment(HG38):
                 padding_side=self.padding_side,
             )
             
-        dataset = DatasetSplitter(0.8, '/data/DNA_alignment_similarity_CSV/pair_alignment') #fix this path
+        self.vocab_size = len(self.tokenizer)
+        
+        self.init_datasets()
+        
+    def init_datasets(self):   
+        dataset = PairAlignment.DatasetSplitter(0.8, self.dest_path)
         train_data, test_data = dataset.data
-        print(train_data)
+        #print(train_data) works
 
-        ds_train = SequencePairSimilarityDataset(
+        self.dataset_train = SequencePairSimilarityDataset(
             train_data,
             max_length =self.max_length,
             tokenizer=self.tokenizer,
@@ -320,25 +323,23 @@ class PairAlignment(HG38):
             add_eos=self.add_eos
         )
 
-        ds_test = SequencePairSimilarityDataset(
+        self.dataset_test = SequencePairSimilarityDataset(
             test_data,
             max_length = self.max_length,
             tokenizer=self.tokenizer,
             use_padding= self.use_padding,
             add_eos=self.add_eos
         )
-
-        train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-        test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=False)
-            
-    def val_dataloader(self, *args: Any, **kwargs: Any) -> Union[DataLoader, List[DataLoader]]:
-        """ The val dataloader """
-        return self._data_loader(self.dataset_val, batch_size=self.batch_size_eval, shuffle=self.shuffle_eval)
-
+        
+        return
+    
+    def train_dataloader(self, *args: Any, **kwargs: Any) -> DataLoader:
+        return self._data_loader(self.dataset_train, batch_size=self.batch_size, shuffle=True)
+    
     def test_dataloader(self, *args: Any, **kwargs: Any) -> Union[DataLoader, List[DataLoader]]:
         """ The test dataloader """
         # note: we're combining val/test into one
-        return self._data_loader(self.dataset_val, batch_size=self.batch_size_eval, shuffle=self.shuffle_eval)
+        return self._data_loader(self.dataset_test, batch_size=self.batch_size_eval, shuffle=self.shuffle_eval)
 
 class GenomicBenchmark(HG38):
     _name_ = "genomic_benchmark"
