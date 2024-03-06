@@ -336,10 +336,14 @@ class PairAlignment(HG38):
     def train_dataloader(self, *args: Any, **kwargs: Any) -> DataLoader:
         return self._data_loader(self.dataset_train, batch_size=self.batch_size, shuffle=True)
     
+    def val_dataloader(self, *args: Any, **kwargs: Any) -> Union[DataLoader, List[DataLoader]]:
+        """ The val dataloader """
+        return self._data_loader(self.dataset_test, batch_size=self.batch_size_eval)
+
     def test_dataloader(self, *args: Any, **kwargs: Any) -> Union[DataLoader, List[DataLoader]]:
         """ The test dataloader """
         # note: we're combining val/test into one
-        return self._data_loader(self.dataset_test, batch_size=self.batch_size_eval, shuffle=self.shuffle_eval)
+        return self._data_loader(self.dataset_test, batch_size=self.batch_size_eval)
 
 class GenomicBenchmark(HG38):
     _name_ = "genomic_benchmark"

@@ -1,0 +1,70 @@
+/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: libtorch_cuda_cu.so: cannot open shared object file: No such file or directory
+  warn(f"Failed to load image Python extension: {e}")
+[rank: 0] Global seed set to 2222
+Using 16bit native Automatic Mixed Precision (AMP)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+`Trainer(limit_train_batches=1.0)` was configured so 100% of the batches per epoch will be used..
+`Trainer(limit_val_batches=1.0)` was configured so 100% of the batches will be used..
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+  | Name               | Type              | Params
+---------------------------------------------------------
+0 | model              | DNAEmbeddingModel | 3.3 M 
+1 | encoder            | Identity          | 0     
+2 | decoder            | SequenceDecoder   | 514   
+3 | train_torchmetrics | MetricCollection  | 0     
+4 | val_torchmetrics   | MetricCollection  | 0     
+5 | test_torchmetrics  | MetricCollection  | 0     
+---------------------------------------------------------
+3.3 M     Trainable params
+0         Non-trainable params
+3.3 M     Total params
+6.556     Total estimated model params size (MB)
+Error executing job with overrides: ['wandb=null', 'experiment=hg38/pair_alignment_load_finetune_model', 'model.fused_dropout_add_ln=False', 'train.pretrained_model_path=/scratch/spadronalcala/hyenadna-small-32k-seqlen/weights.ckpt']
+Traceback (most recent call last):
+  File "/home/spadronalcala/Documents/thesis/hyena-dna-genome-similarity/train.py", line 691, in main
+    train(config)
+  File "/home/spadronalcala/Documents/thesis/hyena-dna-genome-similarity/train.py", line 672, in train
+    trainer.fit(model)
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 603, in fit
+    call._call_and_handle_interrupt(
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 38, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 645, in _fit_impl
+    self._run(model, ckpt_path=self.ckpt_path)
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1098, in _run
+    results = self._run_stage()
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1177, in _run_stage
+    self._run_train()
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1190, in _run_train
+    self._run_sanity_check()
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1262, in _run_sanity_check
+    val_loop.run()
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/loops/dataloader/evaluation_loop.py", line 152, in advance
+    dl_outputs = self.epoch_loop.run(self._data_fetcher, dl_max_batches, kwargs)
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/loops/loop.py", line 199, in run
+    self.advance(*args, **kwargs)
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/loops/epoch/evaluation_epoch_loop.py", line 137, in advance
+    output = self._evaluation_step(**kwargs)
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/loops/epoch/evaluation_epoch_loop.py", line 234, in _evaluation_step
+    output = self.trainer._call_strategy_hook(hook_name, *kwargs.values())
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1480, in _call_strategy_hook
+    output = fn(*args, **kwargs)
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/pytorch_lightning/strategies/strategy.py", line 390, in validation_step
+    return self.model.validation_step(*args, **kwargs)
+  File "/home/spadronalcala/Documents/thesis/hyena-dna-genome-similarity/train.py", line 430, in validation_step
+    loss = self._shared_step(
+  File "/home/spadronalcala/Documents/thesis/hyena-dna-genome-similarity/train.py", line 323, in _shared_step
+    x, y, w = self.forward(batch)
+  File "/home/spadronalcala/Documents/thesis/hyena-dna-genome-similarity/train.py", line 308, in forward
+    return self.task.forward(batch, self.encoder, self.model, self.decoder, self._state)
+  File "/home/spadronalcala/Documents/thesis/hyena-dna-genome-similarity/src/tasks/tasks.py", line 235, in forward
+    assert len(z) == 1 and isinstance(z[0], dict), "Dataloader must return dictionary of extra arguments"
+AssertionError: Dataloader must return dictionary of extra arguments
+
+Set the environment variable HYDRA_FULL_ERROR=1 for a complete stack trace.

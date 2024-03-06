@@ -207,9 +207,9 @@ def inference_single():
                                  'hyenadna-large-1m-seqlen']:
         # use the pretrained Huggingface wrapper instead
         model = HyenaDNAPreTrainedModel.from_pretrained(
-            './checkpoints',
+            '/scratch/spadronalcala',
             pretrained_model_name,
-            download=True,
+            download=False,
             config=backbone_cfg,
             device=device,
             use_head=use_head,
@@ -248,7 +248,7 @@ def inference_single():
     print(embeddings.shape)  # embeddings here!
 
 # # uncomment to run! (to get embeddings)
-inference_single()
+#inference_single()
 
 
 # to run this, just call:

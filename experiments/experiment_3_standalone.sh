@@ -14,4 +14,5 @@
 project_dir=.
 
 source "$project_dir"/venv/bin/activate
-python -m train wandb=null experiment=hg38/pair_alignment_load_finetune_model model.fused_dropout_add_ln=False train.pretrained_model_path=/scratch/spadronalcala/hyenadna-small-32k-seqlen/weights.ckpt
+echo "$(ls /scratch/spadronalcala)"
+python -m my_train

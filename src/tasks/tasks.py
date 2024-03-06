@@ -227,6 +227,7 @@ class MaskedMultiClass(MultiClass):
         """Passes a batch through the encoder, backbone, and decoder"""
 
         # z holds arguments such as sequence length
+        print(batch)
         x, y, *z = batch # z holds extra dataloader info such as resolution
         if len(z) == 0:
             z = {}

@@ -1,7 +1,7 @@
 _name_: pair_alignment
 dataset_name: par_alignment
 data_path: '/home/spadronalcala/Documents/thesis/hyena-dna-genome-similarity/data/pair_alignment'
-max_length: 13370
+max_length: 1024
 d_output: 2
 use_padding: True
 padding_side: 'left'

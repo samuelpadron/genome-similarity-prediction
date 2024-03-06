@@ -1,0 +1,33 @@
+hyenadna-small-32k-seqlen
+hyenadna-tiny-1k-seqlen
+virtual_environments
+Git LFS initialized.
+
+
+###############################################################################
+Science Cluster
+Job 3703010 for user 'spadronalcala'
+Finished at: Wed Mar  6 23:51:03 CET 2024
+
+Job details:
+============
+
+Name                : experiment_3_standalone.sh
+User                : spadronalcala
+Partition           : csedu
+Nodes               : cn47
+Cores               : 2
+State               : CANCELLED,TIMEOUT
+Submit              : 2024-03-06T22:50:39
+Start               : 2024-03-06T22:50:40
+End                 : 2024-03-06T23:51:03
+Reserved walltime   : 01:00:00
+Used walltime       : 01:00:23
+Used CPU time       : 01:00:18 (efficiency: 49.93%)
+% User (Computation): 99.75%
+% System (I/O)      :  0.25%
+Mem reserved        : 10G
+Max Mem used        : 2.91G (cn47)
+Max Disk Write      : 0.00  (cn47)
+Max Disk Read       : 10.24K (cn47)
+

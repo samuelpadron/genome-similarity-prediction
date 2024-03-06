@@ -1,0 +1,200 @@
+CONFIG
+├── train
+│   └── seed: 2222                                                              
+│       interval: step                                                          
+│       monitor: val/accuracy                                                   
+│       mode: max                                                               
+│       ema: 0.0                                                                
+│       test: false                                                             
+│       debug: false                                                            
+│       ignore_warnings: false                                                  
+│       state:                                                                  
+│         mode: null                                                            
+│         n_context: 0                                                          
+│         n_context_eval: 0                                                     
+│       ckpt: null                                                              
+│       disable_dataset: false                                                  
+│       validate_at_start: false                                                
+│       pretrained_model_path: /scratch/spadronalcala/hyenadna-small-32k-seqlen/
+│       pretrained_model_strict_load: false                                     
+│       pretrained_model_state_hook:                                            
+│         _name_: null                                                          
+│       post_init_hook:                                                         
+│         _name_: null                                                          
+│       layer_decay:                                                            
+│         _name_: null                                                          
+│         decay: 0.7                                                            
+│       gpu_mem: 11                                                             
+│       global_batch_size: 32                                                   
+│       remove_test_loader_in_eval: false                                       
+│                                                                               
+├── tolerance
+│   └── logdir: ./resume                                                        
+│       id: null                                                                
+│                                                                               
+├── wandb
+│   └── None                                                                    
+├── trainer
+│   └── _target_: pytorch_lightning.Trainer                                     
+│       devices: 1                                                              
+│       accelerator: gpu                                                        
+│       accumulate_grad_batches: 1                                              
+│       max_epochs: 100                                                         
+│       gradient_clip_val: 1.0                                                  
+│       log_every_n_steps: 10                                                   
+│       limit_train_batches: 1.0                                                
+│       limit_val_batches: 1.0                                                  
+│       num_nodes: 1                                                            
+│       precision: 16                                                           
+│                                                                               
+├── loader
+│   └── batch_size: 50                                                          
+│       num_workers: 4                                                          
+│       pin_memory: true                                                        
+│       drop_last: true                                                         
+│                                                                               
+├── dataset
+│   └── _name_: pair_alignment                                                  
+│       dataset_name: pair_alignment                                            
+│       data_path: /home/spadronalcala/Documents/thesis/hyena-dna-genome-similar
+│       max_length: 1026                                                        
+│       d_output: 2                                                             
+│       use_padding: true                                                       
+│       padding_side: left                                                      
+│       add_eos: false                                                          
+│       shuffle: true                                                           
+│       batch_size: 32                                                          
+│       dest_path: /home/spadronalcala/Documents/thesis/hyena-dna-genome-similar
+│       train_len: 108770                                                       
+│       tokenizer_name: char                                                    
+│                                                                               
+├── task
+│   └── _name_: masked_multiclass                                               
+│       loss: cross_entropy                                                     
+│       metrics:                                                                
+│       - accuracy                                                              
+│       torchmetrics: null                                                      
+│                                                                               
+├── optimizer
+│   └── _name_: adamw                                                           
+│       lr: 0.0006                                                              
+│       weight_decay: 0.1                                                       
+│       betas:                                                                  
+│       - 0.9                                                                   
+│       - 0.999                                                                 
+│                                                                               
+├── scheduler
+│   └── _name_: cosine_warmup_timm                                              
+│       t_in_epochs: false                                                      
+│       t_initial: 340000                                                       
+│       lr_min: 5.9999999999999995e-05                                          
+│       warmup_lr_init: 1.0e-06                                                 
+│       warmup_t: 3400.0                                                        
+│                                                                               
+├── callbacks
+│   └── learning_rate_monitor:                                                  
+│         logging_interval: step                                                
+│       timer:                                                                  
+│         step: true                                                            
+│         inter_step: false                                                     
+│         epoch: true                                                           
+│         val: true                                                             
+│       params:                                                                 
+│         total: true                                                           
+│         trainable: true                                                       
+│         fixed: true                                                           
+│       model_checkpoint:                                                       
+│         monitor: val/accuracy                                                 
+│         mode: max                                                             
+│         save_top_k: 1                                                         
+│         save_last: true                                                       
+│         dirpath: checkpoints/                                                 
+│         filename: val/accuracy                                                
+│         auto_insert_metric_name: false                                        
+│         verbose: true                                                         
+│                                                                               
+├── encoder
+│   └── id                                                                      
+├── decoder
+│   └── _name_: sequence                                                        
+│       mode: pool                                                              
+│                                                                               
+└── model
+    └── _name_: dna_embedding                                                   
+        d_model: 256                                                            
+        n_layer: 4                                                              
+        d_inner: 1024                                                           
+        vocab_size: 12                                                          
+        resid_dropout: 0.0                                                      
+        embed_dropout: 0.1                                                      
+        fused_mlp: false                                                        
+        fused_dropout_add_ln: false                                             
+        residual_in_fp32: true                                                  
+        pad_vocab_size_multiple: 8                                              
+        return_hidden_state: true                                               
+        layer:                                                                  
+          _name_: hyena                                                         
+          emb_dim: 5                                                            
+          filter_order: 64                                                      
+          local_order: 3                                                        
+          l_max: 32770                                                          
+          modulate: true                                                        
+          w: 10                                                                 
+          lr: 0.0006                                                            
+          wd: 0.0                                                               
+          lr_pos_emb: 0.0                                                       
+                                                                                
+[2024-03-06 23:41:22,560][__main__][INFO] - Instantiating callback <src.callbacks.timer.Timer>
+[2024-03-06 23:41:22,575][__main__][INFO] - Instantiating callback <src.callbacks.params.ParamsLog>
+[2024-03-06 23:41:22,581][__main__][INFO] - Instantiating callback <pytorch_lightning.callbacks.ModelCheckpoint>
+[2024-03-06 23:41:22,583][__main__][INFO] - Instantiating trainer <pytorch_lightning.Trainer>
+**Using Char-level tokenizer**
+**Using Char-level tokenizer**
+Custom load_state_dict function is running.
+**Using Char-level tokenizer**
+Hyperparameter groups [{'weight_decay': 0.0, 'lr': 0.0006}]
+[2024-03-06 23:41:29,724][__main__][INFO] - Optimizer group 0 | 65 tensors | lr 0.0006 | weight_decay 0.1
+[2024-03-06 23:41:29,726][__main__][INFO] - Optimizer group 1 | 32 tensors | lr 0.0006 | weight_decay 0.0
+Sanity Checking: 0it [00:00, ?it/s]Sanity Checking:   0%|          | 0/2 [00:00<?, ?it/s]Sanity Checking DataLoader 0:   0%|          | 0/2 [00:00<?, ?it/s][tensor([[ 4,  4,  4,  ...,  8,  8, 10],
+        [ 4,  4,  4,  ...,  7,  7, 10],
+        [ 4,  4,  4,  ...,  8, 10, 10],
+        ...,
+        [ 8, 10, 10,  ...,  9,  8, 10],
+        [ 4,  4,  4,  ...,  9, 10,  8],
+        [ 4,  4,  4,  ..., 10,  9,  9]], device='cuda:0'), tensor([[ 4,  4,  4,  ...,  9,  8, 10],
+        [ 4,  4,  4,  ...,  7,  9, 10],
+        [ 4,  4,  4,  ...,  8, 10, 10],
+        ...,
+        [ 8, 10,  8,  ...,  7,  7,  9],
+        [ 4,  4,  4,  ..., 10, 10,  8],
+        [ 4,  4,  4,  ...,  6,  6,  6]], device='cuda:0'), tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1], device='cuda:0')]
+                                                                   
+
+###############################################################################
+Science Cluster
+Job 3703516 for user 'spadronalcala'
+Finished at: Wed Mar  6 23:41:31 CET 2024
+
+Job details:
+============
+
+Name                : experiment_1_test.sh
+User                : spadronalcala
+Partition           : csedu
+Nodes               : cn47
+Cores               : 2
+State               : FAILED
+Submit              : 2024-03-06T23:41:15
+Start               : 2024-03-06T23:41:16
+End                 : 2024-03-06T23:41:31
+Reserved walltime   : 01:00:00
+Used walltime       : 00:00:15
+Used CPU time       : 00:00:15 (efficiency: 51.71%)
+% User (Computation): 86.25%
+% System (I/O)      : 13.75%
+Mem reserved        : 10G
+Max Mem used        : 4.00K (cn47)
+Max Disk Write      : 0.00  (cn47)
+Max Disk Read       : 0.00  (cn47)
+
