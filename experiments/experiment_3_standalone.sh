@@ -9,7 +9,6 @@
 #SBATCH --mail-user=samuel.padronalcala@ru.nl
 #SBATCH --output=%j.out
 #SBATCH --error=%j.err
-#SBATCH --mail-type=END
 
 project_dir=.
 
