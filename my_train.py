@@ -93,18 +93,17 @@ def run_train():
     def train(model, device, train_loader, optimizer, epoch, loss_fn, log_interval=10):
         """Training loop."""
         model.train()
-        # for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
-        #       print("data loader killed")
-        #     seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
-        #     optimizer.zero_grad()
-        #     output = model(seq1, seq2)
-        #     loss = loss_fn(output, target.squeeze())
-        #     loss.backward()
-        #     optimizer.step()
-        #     if batch_idx % log_interval == 0:
-        #         print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-        #             epoch, batch_idx * len(seq1), len(train_loader.dataset),
-        #             100. * batch_idx / len(train_loader), loss.item()))
+        for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
+            seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
+            optimizer.zero_grad()
+            output = model(seq1, seq2)
+            loss = loss_fn(output, target.squeeze())
+            loss.backward()
+            optimizer.step()
+            if batch_idx % log_interval == 0:
+                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                    epoch, batch_idx * len(seq1), len(train_loader.dataset),
+                    100. * batch_idx / len(train_loader), loss.item()))
 
     def test(model, device, test_loader, loss_fn):
         """Test loop."""
@@ -127,8 +126,13 @@ def run_train():
 
     for epoch in range(num_epochs):
         train(model, device, train_loader, optimizer, epoch, loss_fn)
-        # test(model, device, test_loader, loss_fn)
-        # optimizer.step()
+        test(model, device, test_loader, loss_fn)
+        optimizer.step()
+        
+    #save model 
+    save_path = os.path.join(os.getcwd(), "trained_model.pth")
+    torch.save(model.state_dict(), save_path)
+    print("Model trained and saved successfully")
 
 if __name__ == "__main__":
     run_train()
