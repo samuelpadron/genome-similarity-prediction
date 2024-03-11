@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --qos=csedu-small
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=10G
+#SBATCH --mem=8G
 #SBATCH --time=1:00:00
 #SBATCH --mail-user=samuel.padronalcala@ru.nl
 #SBATCH --output=%j.out

@@ -51,7 +51,13 @@ class SequencePairSimilarityDataset(torch.utils.data.Dataset):
     # convert to tensor
     seq1 = torch.LongTensor(seq1)
     seq2 = torch.LongTensor(seq2)
+    
+    ##FOR PYTORCH LIGHTNING:
+    
+    # seq_pair = torch.cat((seq1.unsqueeze(1), seq2.unsqueeze(1)), dim=1)
 
-    label = torch.tensor(label)
+    # seq_pair = seq_pair.view(seq_pair.size(0), -1)
+
+    # label = torch.tensor(label)
 
     return seq1, seq2, label  #label: 1 ~ true, 0 ~ false

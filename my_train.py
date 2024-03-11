@@ -93,17 +93,18 @@ def run_train():
     def train(model, device, train_loader, optimizer, epoch, loss_fn, log_interval=10):
         """Training loop."""
         model.train()
-        for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
-            seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
-            optimizer.zero_grad()
-            output = model(seq1, seq2)
-            loss = loss_fn(output, target.squeeze())
-            loss.backward()
-            optimizer.step()
-            if batch_idx % log_interval == 0:
-                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                    epoch, batch_idx * len(seq1), len(train_loader.dataset),
-                    100. * batch_idx / len(train_loader), loss.item()))
+        with open("OUTPUT2.txt", 'a') as output_file:   #otherwise can't see in stdout for some reason
+            for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
+                seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
+                optimizer.zero_grad()
+                output = model(seq1, seq2)
+                loss = loss_fn(output, target.squeeze())
+                loss.backward()
+                optimizer.step()
+                if batch_idx % log_interval == 0:
+                    print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                        epoch, batch_idx * len(seq1), len(train_loader.dataset),
+                        100. * batch_idx / len(train_loader), loss.item()), file=output_file)
 
     def test(model, device, test_loader, loss_fn):
         """Test loop."""

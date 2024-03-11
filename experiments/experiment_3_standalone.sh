@@ -1,13 +1,15 @@
 #!/bin/bash -e
 #SBATCH --account=cseduproject
 #SBATCH --partition=csedu
-#SBATCH --gres=gpu:1
-#SBATCH --qos=csedu-small
+#SBATCH --gres=gpu:2
+#SBATCH --qos=csedu-normal
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=10G
+#SBATCH --mem=5G
+#SBATCH --time=8:00:00
 #SBATCH --mail-user=samuel.padronalcala@ru.nl
 #SBATCH --output=%j.out
-#SBATCH --error=%j.err
+#SBATCH --error=%j.errs
+#SBATCH --mail-type=END
 
 project_dir=.
 
