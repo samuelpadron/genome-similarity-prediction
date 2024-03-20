@@ -910,13 +910,26 @@ class HyenaDNAModel(nn.Module):
     # def tie_weights(self):
     #     self.head.weight = self.backbone.embeddings.word_embeddings.weight
 
-    def forward(self, input_ids, position_ids=None, state=None): # state for the repo interface
-        hidden_states = self.backbone(input_ids, position_ids=position_ids)
+    def forward(self, seq1, seq2, position_ids=None, state=None): # state for the repo interface
+        hidden_states_seq1 = self.backbone(seq1, position_ids=position_ids)
+        hidden_states_seq2 = self.backbone(seq2, position_ids=position_ids)
+        # print(f"hid state 1: {hidden_states_seq1}")
+        # print(f"hid state 2: {hidden_states_seq2}")
 
-        if self.use_head:
-            return self.head(hidden_states)
-        else:
-            return hidden_states
+        #concatenate the sequences in a pair together
+
+        # pair_hidden_states = []
+        # for hidden_state1, hidden_state2 in zip (hidden_states_seq1, hidden_states_seq2):
+        #   pair_hidden_states.append(torch.cat((hidden_state1, hidden_state2), dim=0))
+
+        # pair_hidden_states = torch.stack(pair_hidden_states)
+
+
+        # if self.use_head:
+        #     return self.head(pair_hidden_states)
+        # else:
+        
+        return hidden_states_seq1, hidden_states_seq2
 
 """# Data pipeline
 

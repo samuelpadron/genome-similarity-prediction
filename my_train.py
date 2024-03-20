@@ -24,9 +24,9 @@ def run_train():
     # for fine-tuning, only the 'tiny' model can fit on colab
     pretrained_model_name = 'hyenadna-tiny-1k-seqlen'  # use None if training from scratch
 
-    # we need these for the decoder head, if using
-    use_head = True
-    n_classes = 2
+    # # we need these for the decoder head, if using
+    # use_head = True
+    # n_classes = 2
 
     # you can override with your own backbone config here if you want,
     # otherwise we'll load the HF one by default
@@ -43,9 +43,7 @@ def run_train():
             pretrained_model_name,
             download=True,
             config=backbone_cfg,
-            device=device,
-            use_head=use_head,
-            n_classes=n_classes,
+            device=device
         )
 
     # from scratch
@@ -83,7 +81,7 @@ def run_train():
     test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=False)
 
     # loss function
-    loss_fn = torch.nn.CrossEntropyLoss(ignore_index=4)# ignore padding token (4)
+    loss_fn = torch.nn.BCEWithLogitsLoss(ignore_index=4)# ignore padding token (4)
 
     # create optimizer
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -93,12 +91,12 @@ def run_train():
     def train(model, device, train_loader, optimizer, epoch, loss_fn, log_interval=10):
         """Training loop."""
         model.train()
-        with open("OUTPUT3.txt", 'a') as output_file:   #otherwise can't see in stdout for some reason
+        with open("train_output.txt", 'a') as output_file:   #otherwise can't see in stdout for some reason
             for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
                 seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
                 optimizer.zero_grad()
                 output = model(seq1, seq2)
-                loss = loss_fn(output, target.squeeze())
+                loss = loss_fn(output.squeeze(), target.float())
                 loss.backward()
                 optimizer.step()
                 if batch_idx % log_interval == 0:
@@ -115,8 +113,8 @@ def run_train():
             for seq1, seq2, target in test_loader:
                 seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
                 output = model(seq1, seq2)
-                test_loss += loss_fn(output, target.squeeze()).item()  # sum up batch loss
-                pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+                test_loss += loss_fn(output.squeeze(), target.float()).item()  # sum up batch loss
+                pred = (output > 0.5).long() #pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
                 correct += pred.eq(target.view_as(pred)).sum().item()
 
         test_loss /= len(test_loader.dataset)
