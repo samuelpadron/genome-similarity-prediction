@@ -93,7 +93,7 @@ def run_train():
     def train(model, device, train_loader, optimizer, epoch, loss_fn, log_interval=10):
         """Training loop."""
         model.train()
-        with open("OUTPUT2.txt", 'a') as output_file:   #otherwise can't see in stdout for some reason
+        with open("OUTPUT3.txt", 'a') as output_file:   #otherwise can't see in stdout for some reason
             for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
                 seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
                 optimizer.zero_grad()

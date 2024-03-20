@@ -749,7 +749,7 @@ states of the backbone as embeddings.
 
 class SequenceDecoder(nn.Module):
     def __init__(
-        self, d_model, d_output=None, l_output=None, use_lengths=False, mode="last"
+        self, d_model, d_output=None, l_output=None, use_lengths=False, mode="pool"
     ):
         super().__init__()
 
