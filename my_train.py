@@ -81,7 +81,7 @@ def run_train():
     test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=False)
 
     # loss function
-    loss_fn = torch.nn.BCEWithLogitsLoss(ignore_index=4)# ignore padding token (4)
+    loss_fn = torch.nn.BCEWithLogitsLoss()
 
     # create optimizer
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -93,10 +93,17 @@ def run_train():
         model.train()
         with open("train_output.txt", 'a') as output_file:   #otherwise can't see in stdout for some reason
             for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
+                print(seq1.shape)
+                print(seq1)
+                print(target)
                 seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
                 optimizer.zero_grad()
-                output = model(seq1, seq2)
-                loss = loss_fn(output.squeeze(), target.float())
+                output_seq1, output_seq2 = model(seq1, seq2)
+                print(output_seq1.shape, output_seq2.shape)
+                print(output_seq1)
+                loss_seq1 = loss_fn(output_seq1.squeeze(), target.float())
+                loss_seq2 = loss_fn(output_seq2.squeeze(), target.float())
+                loss = (loss_seq1 + loss_seq2) / 2.0
                 loss.backward()
                 optimizer.step()
                 if batch_idx % log_interval == 0:
@@ -113,7 +120,7 @@ def run_train():
             for seq1, seq2, target in test_loader:
                 seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
                 output = model(seq1, seq2)
-                test_loss += loss_fn(output.squeeze(), target.float()).item()  # sum up batch loss
+                test_loss += loss_fn(output, target.float()).item()  # sum up batch loss
                 pred = (output > 0.5).long() #pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
                 correct += pred.eq(target.view_as(pred)).sum().item()
 

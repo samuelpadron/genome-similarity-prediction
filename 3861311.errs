@@ -1,0 +1,23 @@
+/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: libtorch_cuda_cu.so: cannot open shared object file: No such file or directory
+  warn(f"Failed to load image Python extension: {e}")
+Cloning into 'hyenadna-tiny-1k-seqlen'...
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/home/spadronalcala/Documents/thesis/hyena-dna-genome-similarity/my_train.py", line 142, in <module>
+    run_train()
+  File "/home/spadronalcala/Documents/thesis/hyena-dna-genome-similarity/my_train.py", line 132, in run_train
+    train(model, device, train_loader, optimizer, epoch, loss_fn)
+  File "/home/spadronalcala/Documents/thesis/hyena-dna-genome-similarity/my_train.py", line 102, in train
+    loss_seq1 = loss_fn(output_seq1.squeeze(), target.float())
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/torch/nn/modules/loss.py", line 725, in forward
+    return F.binary_cross_entropy_with_logits(input, target,
+  File "/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/torch/nn/functional.py", line 3197, in binary_cross_entropy_with_logits
+    raise ValueError(f"Target size ({target.size()}) must be the same as input size ({input.size()})")
+ValueError: Target size (torch.Size([256])) must be the same as input size (torch.Size([256, 500, 128]))
