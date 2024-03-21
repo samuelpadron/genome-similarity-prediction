@@ -15,7 +15,7 @@ def run_train():
     num_epochs = 100  # ~100 seems fine
     max_length = 500  # max len of sequence of dataset (of what you want) ~ should experiment with this
     use_padding = True
-    batch_size = 256
+    batch_size = 128
     learning_rate = 6e-4  # good default for Hyena
     rc_aug = True  # reverse complement augmentation
     add_eos = False  # add end of sentence token
@@ -93,18 +93,15 @@ def run_train():
         model.train()
         with open("train_output.txt", 'a') as output_file:   #otherwise can't see in stdout for some reason
             for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
-                print(seq1.shape)
-                print(seq1)
-                print(target)
                 seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
                 optimizer.zero_grad()
-                output_seq1, output_seq2 = model(seq1, seq2)
-                print(output_seq1.shape, output_seq2.shape)
-                print(output_seq1)
-                loss_seq1 = loss_fn(output_seq1.squeeze(), target.float())
-                loss_seq2 = loss_fn(output_seq2.squeeze(), target.float())
-                loss = (loss_seq1 + loss_seq2) / 2.0
-                loss.backward()
+                output = model(seq1, seq2)
+                # print("target:")
+                # print(target, target.shape, target.dtype)
+                # print("output:")
+                # print(output, output.shape, output.dtype)
+                loss = loss_fn(output, target) #target has shape [batch_size]
+                loss /= len(seq1)  # avg the loss over the batch
                 optimizer.step()
                 if batch_idx % log_interval == 0:
                     print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
@@ -120,8 +117,8 @@ def run_train():
             for seq1, seq2, target in test_loader:
                 seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
                 output = model(seq1, seq2)
-                test_loss += loss_fn(output, target.float()).item()  # sum up batch loss
-                pred = (output > 0.5).long() #pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+                test_loss += (loss_fn(output, target.float())).item()
+                pred = (output > 0.5).long()
                 correct += pred.eq(target.view_as(pred)).sum().item()
 
         test_loss /= len(test_loader.dataset)

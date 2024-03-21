@@ -852,8 +852,7 @@ class SequenceDecoder(nn.Module):
     def step(self, x, state=None):
         # Ignore all length logic
         return self.output_transform(x)
-
-#@title Model (backbone + head)
+    
 
 """
 Putting it all together, the model consists of a backbone model
@@ -910,26 +909,81 @@ class HyenaDNAModel(nn.Module):
     # def tie_weights(self):
     #     self.head.weight = self.backbone.embeddings.word_embeddings.weight
 
+    def forward(self, input_ids, position_ids=None, state=None): # state for the repo interface
+        hidden_states = self.backbone(input_ids, position_ids=position_ids)
+
+        if self.use_head:
+            return self.head(hidden_states)
+        else:
+            return hidden_states
+        
+        
+class ConcatPairHead(nn.Module):
+    def __init__(self, input_size, hidden_size):
+        super().__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, hidden_size)
+        self.fc3 = nn.Linear(hidden_size, 1)
+
+    def forward(self, hidden_states_seq1, hidden_states_seq2):
+        pair_hidden_states = []
+        for hidden_state1, hidden_state2 in zip (hidden_states_seq1, hidden_states_seq2):
+            pair_hidden_states.append(torch.cat((hidden_state1, hidden_state2), dim=0))
+
+        pair_hidden_states = torch.stack(pair_hidden_states)
+        #check shape of pair_hidden_states
+        print("pair hidden states shape:")
+        print(pair_hidden_states.shape)
+
+        x = F.relu(self.fc1(pair_hidden_states))
+        x = F.relu(self.fc2(x))
+        
+         # Reduce sequence dimension to get a tensor of shape [128, hidden_size]
+        x = torch.mean(x, dim=1)
+
+        #get whether it aligns or not (1 or 0)
+        output = F.relu(self.fc3(x)).squeeze() #don't think its needed with BCEWithLogitsLoss
+
+        return output
+
+
+class CustomHyenaDNAModel(nn.Module):
+
+    def __init__(self, d_model: int, n_layer: int, d_inner: int, vocab_size: int,
+                 layer=None, attn_layer_idx=None, attn_cfg=None, max_position_embeddings=0,
+                 resid_dropout: float = 0.0, embed_dropout: float = 0.1,
+                 layer_norm_epsilon: float = 1e-5, initializer_cfg=None,residual_in_fp32=False,
+                 pad_vocab_size_multiple: int = 1, use_head=True,
+                 device=None, dtype=None, **kwargs) -> None:
+        factory_kwargs = {'device': device, 'dtype': dtype}
+        super().__init__()
+        if vocab_size % pad_vocab_size_multiple != 0:
+            vocab_size += pad_vocab_size_multiple - (vocab_size % pad_vocab_size_multiple)
+
+        self.use_head = use_head
+
+        # check if layer (config) has d_model (HF code differs from main Safari code)
+        if 'd_model' not in layer:
+            layer['d_model'] = d_model
+
+        self.backbone = LMBackbone(
+            d_model=d_model, n_layer=n_layer, d_inner=d_inner, vocab_size=vocab_size,
+            layer=layer, attn_layer_idx=attn_layer_idx, attn_cfg=attn_cfg,
+            max_position_embeddings=max_position_embeddings,
+            resid_dropout=resid_dropout, embed_dropout=embed_dropout,
+            layer_norm_epsilon=layer_norm_epsilon,
+            initializer_cfg=initializer_cfg, residual_in_fp32=residual_in_fp32,
+            **factory_kwargs, **kwargs
+        )
+        
+        self.head = ConcatPairHead(input_size=d_model, hidden_size=d_model)
+
     def forward(self, seq1, seq2, position_ids=None, state=None): # state for the repo interface
         hidden_states_seq1 = self.backbone(seq1, position_ids=position_ids)
         hidden_states_seq2 = self.backbone(seq2, position_ids=position_ids)
-        # print(f"hid state 1: {hidden_states_seq1}")
-        # print(f"hid state 2: {hidden_states_seq2}")
-
-        #concatenate the sequences in a pair together
-
-        # pair_hidden_states = []
-        # for hidden_state1, hidden_state2 in zip (hidden_states_seq1, hidden_states_seq2):
-        #   pair_hidden_states.append(torch.cat((hidden_state1, hidden_state2), dim=0))
-
-        # pair_hidden_states = torch.stack(pair_hidden_states)
-
-
-        # if self.use_head:
-        #     return self.head(pair_hidden_states)
-        # else:
         
-        return hidden_states_seq1, hidden_states_seq2
+        output = self.head(hidden_states_seq1, hidden_states_seq2)
+        return output
 
 """# Data pipeline
 

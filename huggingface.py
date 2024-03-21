@@ -21,6 +21,7 @@ import torch
 from transformers import PreTrainedModel
 import re
 from standalone_hyenadna import HyenaDNAModel
+from standalone_hyenadna import CustomHyenaDNAModel
 from standalone_hyenadna import CharacterTokenizer
 
 
@@ -89,6 +90,7 @@ class HyenaDNAPreTrainedModel(PreTrainedModel):
                         device='cpu',
                         use_head=False,
                         n_classes=2,
+                        custom=True
                       ):
         # first check if it is a local path
         pretrained_model_name_or_path = os.path.join(path, model_name)
@@ -105,7 +107,11 @@ class HyenaDNAPreTrainedModel(PreTrainedModel):
             if config is None:
                 config = json.load(open(os.path.join(pretrained_model_name_or_path, 'config.json')))
 
-        scratch_model = HyenaDNAModel(**config, use_head=use_head, n_classes=n_classes)  # the new model format
+        if custom:
+            scratch_model = CustomHyenaDNAModel(**config, use_head=use_head, n_classes=n_classes)  # the new model format
+        else:
+            scratch_model = HyenaDNAModel(**config, use_head=use_head, n_classes=n_classes)  # the new model format
+            
         loaded_ckpt = torch.load(
             os.path.join(pretrained_model_name_or_path, 'weights.ckpt'),
             map_location=torch.device(device)

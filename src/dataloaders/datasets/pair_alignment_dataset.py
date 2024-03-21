@@ -58,6 +58,8 @@ class SequencePairSimilarityDataset(torch.utils.data.Dataset):
 
     # seq_pair = seq_pair.view(seq_pair.size(0), -1)
 
-    # label = torch.tensor(label)
-
+    label = torch.tensor(label).float()
+    
+    #get label to match the output shape of model [batch_size, max_seq_size, 128]
+    
     return seq1, seq2, label  #label: 1 ~ true, 0 ~ false
