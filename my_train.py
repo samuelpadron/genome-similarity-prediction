@@ -45,10 +45,10 @@ def test(model, device, test_loader, loss_fn):
 
     test_loss /= len(test_loader.dataset)
 
-    with open("test_output.txt", 'a') as test_output
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)), file=test_output)
+    with open("test_output.txt", 'a') as test_output:
+        print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
+            test_loss, correct, len(test_loader.dataset),
+            100. * correct / len(test_loader.dataset)), file=test_output)
     
 def run_train():
     # experiment settings:
