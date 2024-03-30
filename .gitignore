@@ -4,12 +4,17 @@ data.tar.gz
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 *.lprof
+*.out
+*.errs
+*.txt
 
 .DS_Store
 .idea/
 outputs/
 
 data
+
+
 
 # Created by https://www.gitignore.io/api/python
 # Edit at https://www.gitignore.io/?templates=python
