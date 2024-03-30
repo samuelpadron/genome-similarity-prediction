@@ -93,7 +93,7 @@ def run_train():
     if pretrained_model_name in ['hyenadna-tiny-1k-seqlen']:
         # use the pretrained Huggingface wrapper instead
         model = huggingface.HyenaDNAPreTrainedModel.from_pretrained(
-            './checkpoints',
+           '/scratch/spadronalcala',
             pretrained_model_name,
             download=True,
             config=backbone_cfg,
@@ -117,6 +117,7 @@ def run_train():
 
     # create datasets
     ds_train = GenomicBenchmarkDataset(
+        dest_path="./data",
         max_length = max_length,
         use_padding = use_padding,
         split = 'train',
@@ -127,6 +128,7 @@ def run_train():
     )
 
     ds_test = GenomicBenchmarkDataset(
+        dest_path="./data",
         max_length = max_length,
         use_padding = use_padding,
         split = 'test',

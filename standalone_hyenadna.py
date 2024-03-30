@@ -932,8 +932,8 @@ class ConcatPairHead(nn.Module):
 
         pair_hidden_states = torch.stack(pair_hidden_states)
         #check shape of pair_hidden_states
-        print("pair hidden states shape:")
-        print(pair_hidden_states.shape)
+        # print("pair hidden states shape:")
+        # print(pair_hidden_states.shape)
 
         x = F.relu(self.fc1(pair_hidden_states))
         x = F.relu(self.fc2(x))

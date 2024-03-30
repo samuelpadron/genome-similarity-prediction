@@ -10,10 +10,50 @@ from dataset_splitter import DatasetSplitter
 from transformers import PreTrainedModel, AutoModelForCausalLM, PretrainedConfig
 from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilarityDataset
 
+def train(model, device, train_loader, optimizer, epoch, loss_fn, log_interval=10):
+        """Training loop."""
+        model.train()
+        with open("train_output.txt", 'a') as train_output:   #otherwise can't see in stdout for some reason
+            for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
+                seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
+                optimizer.zero_grad()
+                output = model(seq1, seq2)
+                # print("target:")
+                # print(target, target.shape, target.dtype)
+                # print("output:")
+                # print(output, output.shape, output.dtype)
+                loss = loss_fn(output, target) #target has shape [batch_size]
+                loss /= len(seq1)  # avg the loss over the batch
+                optimizer.step()
+                if batch_idx % log_interval == 0:
+                    print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                        epoch, batch_idx * len(seq1), len(train_loader.dataset),
+                        100. * batch_idx / len(train_loader), loss.item()), file=train_output)
+
+def test(model, device, test_loader, loss_fn):
+    """Test loop."""
+    model.eval()
+    test_loss = 0
+    correct = 0
+    with torch.no_grad():
+        for seq1, seq2, target in test_loader:
+            seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
+            output = model(seq1, seq2)
+            test_loss += (loss_fn(output, target.float())).item()
+            pred = (output > 0.5).long()
+            correct += pred.eq(target.view_as(pred)).sum().item()
+
+    test_loss /= len(test_loader.dataset)
+
+    with open("test_output.txt", 'a') as test_output
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset)), file=test_output)
+    
 def run_train():
     # experiment settings:
     num_epochs = 100  # ~100 seems fine
-    max_length = 500  # max len of sequence of dataset (of what you want) ~ should experiment with this
+    max_length = 50  # max len of sequence of dataset (of what you want) ~ should experiment with this
     use_padding = True
     batch_size = 128
     learning_rate = 6e-4  # good default for Hyena
@@ -23,10 +63,6 @@ def run_train():
 
     # for fine-tuning, only the 'tiny' model can fit on colab
     pretrained_model_name = 'hyenadna-tiny-1k-seqlen'  # use None if training from scratch
-
-    # # we need these for the decoder head, if using
-    # use_head = True
-    # n_classes = 2
 
     # you can override with your own backbone config here if you want,
     # otherwise we'll load the HF one by default
@@ -48,7 +84,7 @@ def run_train():
 
     # from scratch
     else:
-        model = standalone_hyenadna.HyenaDNAModel(**backbone_cfg, use_head=use_head, n_classes=n_classes)
+        model = standalone_hyenadna.CustomHyenaDNAModelHyenaDNAModel(**backbone_cfg, use_head=use_head, n_classes=n_classes)
 
     # create tokenizer
     tokenizer = standalone_hyenadna.CharacterTokenizer(
@@ -58,7 +94,7 @@ def run_train():
         padding_side='left', # since HyenaDNA is causal, we pad on the left
     )
 
-    dataset = DatasetSplitter(0.8, 'data/pair_alignment')
+    dataset = DatasetSplitter(0.7, 'data/pair_alignment')
     train_data, test_data = dataset.data
 
     ds_train = SequencePairSimilarityDataset(
@@ -87,45 +123,6 @@ def run_train():
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
     model.to(device)
-    
-    def train(model, device, train_loader, optimizer, epoch, loss_fn, log_interval=10):
-        """Training loop."""
-        model.train()
-        with open("train_output.txt", 'a') as output_file:   #otherwise can't see in stdout for some reason
-            for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
-                seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
-                optimizer.zero_grad()
-                output = model(seq1, seq2)
-                # print("target:")
-                # print(target, target.shape, target.dtype)
-                # print("output:")
-                # print(output, output.shape, output.dtype)
-                loss = loss_fn(output, target) #target has shape [batch_size]
-                loss /= len(seq1)  # avg the loss over the batch
-                optimizer.step()
-                if batch_idx % log_interval == 0:
-                    print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                        epoch, batch_idx * len(seq1), len(train_loader.dataset),
-                        100. * batch_idx / len(train_loader), loss.item()), file=output_file)
-
-    def test(model, device, test_loader, loss_fn):
-        """Test loop."""
-        model.eval()
-        test_loss = 0
-        correct = 0
-        with torch.no_grad():
-            for seq1, seq2, target in test_loader:
-                seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
-                output = model(seq1, seq2)
-                test_loss += (loss_fn(output, target.float())).item()
-                pred = (output > 0.5).long()
-                correct += pred.eq(target.view_as(pred)).sum().item()
-
-        test_loss /= len(test_loader.dataset)
-
-        print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
-            test_loss, correct, len(test_loader.dataset),
-            100. * correct / len(test_loader.dataset)))
 
     for epoch in range(num_epochs):
         train(model, device, train_loader, optimizer, epoch, loss_fn)
