@@ -1,3 +1,4 @@
+import sys
 import json
 import os
 import subprocess
@@ -10,66 +11,70 @@ from dataset_splitter import DatasetSplitter
 from transformers import PreTrainedModel, AutoModelForCausalLM, PretrainedConfig
 from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilarityDataset
 
-def train(model, device, train_loader, optimizer, epoch, loss_fn, log_interval=10):
+def train(model, device, train_loader, optimizer, epoch, loss_fn, enable_print, job_id, log_interval=10):
         """Training loop."""
         model.train()
-        with open("train_output.txt", 'a') as train_output:   #otherwise can't see in stdout for some reason
-            for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
-                seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
-                optimizer.zero_grad()
-                output = model(seq1, seq2)
-                # print("target:")
-                # print(target, target.shape, target.dtype)
-                # print("output:")
-                # print(output, output.shape, output.dtype)
-                loss = loss_fn(output, target) #target has shape [batch_size]
-                loss /= len(seq1)  # avg the loss over the batch
-                optimizer.step()
-                if batch_idx % log_interval == 0:
+        train_output = open(f"train_{job_id}.txt", 'a') if enable_print else None #otherwise can't see in stdout for some reason
+        
+        for batch_idx, (seq1, seq2, target) in enumerate(train_loader):
+            seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
+            optimizer.zero_grad()
+            output = model(seq1, seq2)
+            # print("target:")
+            # print(target, target.shape, target.dtype)
+            # print("output:")
+            # print(output, output.shape, output.dtype)
+            loss = loss_fn(output, target) #target has shape [batch_size]
+            loss /= len(seq1)  # avg the loss over the batch
+            optimizer.step()
+            if batch_idx % log_interval == 0:
+                if enable_print:
                     print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                         epoch, batch_idx * len(seq1), len(train_loader.dataset),
                         100. * batch_idx / len(train_loader), loss.item()), file=train_output)
+                else:
+                    print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                        epoch, batch_idx * len(seq1), len(train_loader.dataset),
+                        100. * batch_idx / len(train_loader), loss.item()))
 
-def test(model, device, test_loader, loss_fn):
+def test(model, device, test_loader, loss_fn, enable_print, job_id):
     """Test loop."""
     model.eval()
     test_loss = 0
     correct = 0
     counter = 0
-    with torch.no_grad() and open("test_output.txt", 'a') as test_output:
-        for seq1, seq2, target in test_loader:
-            seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
-            output = model(seq1, seq2)
-            probs = torch.sigmoid(output)
-            test_loss += (loss_fn(output, target.float())).item()
-            pred = (probs > 0.5).long()
-            correct += pred.eq(target.view_as(pred)).sum().item()
+    test_output = open(f"test_{job_id}.txt", 'a') if enable_print else None
+    
+    for seq1, seq2, target in test_loader:
+        seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
+        output = model(seq1, seq2)
+        probs = torch.sigmoid(output)
+        test_loss += (loss_fn(output, target.float())).item()
+        pred = (probs > 0.5).long()
+        correct += pred.eq(target.view_as(pred)).sum().item()
 
-            if counter % 100 == 0:
-                print(f"model output: {output}", file=test_output)
-                print(f"probabilities: {probs}", file=test_output)
-                print(f"target: {target}, prediction: {pred}", file=test_output)
-                
-            counter += 1
+        if enable_print and counter % 100 == 0:
+            print(f"model output: {output}", file=test_output)
+            print(f"probabilities: {probs}", file=test_output)
+            print(f"target: {target}, prediction: {pred}", file=test_output)
+            
+        counter += 1
             
     test_loss /= len(test_loader.dataset)
 
-    with open("test_output.txt", 'a') as test_output:
-        print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
-            test_loss, correct, len(test_loader.dataset),
-            100. * correct / len(test_loader.dataset)), file=test_output)
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset)))
     
-def run_train():
+def run_train(job_id, learning_rate=6e-4, weight_decay=0.1):
     # experiment settings:
     num_epochs = 100  # ~100 seems fine
     max_length = 500  # max len of sequence of dataset (of what you want) ~ should experiment with this
-    use_padding = 'do_not_pad'
+    use_padding = 'max_length'
     batch_size = 128
     
-    learning_rate = 6e-4  # good default for Hyena
-    rc_aug = True  # reverse complement augmentation
+    #rc_aug = True  # reverse complement augmentation
     add_eos = False  # add end of sentence token
-    weight_decay = 0.1
 
     # for fine-tuning, only the 'tiny' model can fit on colab
     pretrained_model_name = 'hyenadna-tiny-1k-seqlen'  # use None if training from scratch
@@ -135,8 +140,8 @@ def run_train():
     model.to(device)
 
     for epoch in range(num_epochs):
-        train(model, device, train_loader, optimizer, epoch, loss_fn)
-        test(model, device, test_loader, loss_fn)
+        train(model, device, train_loader, optimizer, epoch, loss_fn, True, job_id)
+        test(model, device, test_loader, loss_fn, True, job_id)
         optimizer.step()
         
     #save model 
@@ -145,4 +150,8 @@ def run_train():
     print("Model trained and saved successfully")
 
 if __name__ == "__main__":
-    run_train()
+    job_id = sys.argv[1]
+    learning_rate = float(sys.argv[2]) if len(sys.argv) > 2 else 6e-4
+    weight_decay = float(sys.argv[3]) if len(sys.argv) > 3 else 0.1
+    
+    run_train(job_id, learning_rate, weight_decay)

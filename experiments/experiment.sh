@@ -1,7 +1,7 @@
 #!/bin/bash -e
 #SBATCH --account=cseduproject
 #SBATCH --partition=csedu
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 #SBATCH --qos=csedu-normal
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -12,6 +12,7 @@
 #SBATCH --mail-type=END
 
 project_dir=.
+job_id=$SLURM_JOB_ID
 
 source "$project_dir"/venv/bin/activate
-python -m my_train
+python -m my_train "$job_id"
