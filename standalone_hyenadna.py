@@ -942,7 +942,7 @@ class ConcatPairHead(nn.Module):
         x = torch.mean(x, dim=1)
 
         #get whether it aligns or not (1 or 0)
-        output = F.relu(self.fc3(x)).squeeze() #don't think its needed with BCEWithLogitsLoss
+        output = self.fc3(x).squeeze()
 
         return output
 

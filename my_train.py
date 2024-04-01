@@ -35,14 +35,23 @@ def test(model, device, test_loader, loss_fn):
     model.eval()
     test_loss = 0
     correct = 0
-    with torch.no_grad():
+    counter = 0
+    with torch.no_grad() and open("test_output.txt", 'a') as test_output:
         for seq1, seq2, target in test_loader:
             seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
             output = model(seq1, seq2)
+            probs = torch.sigmoid(output)
             test_loss += (loss_fn(output, target.float())).item()
-            pred = (output > 0.5).long()
+            pred = (probs > 0.5).long()
             correct += pred.eq(target.view_as(pred)).sum().item()
 
+            if counter % 100 == 0:
+                print(f"model output: {output}", file=test_output)
+                print(f"probabilities: {probs}", file=test_output)
+                print(f"target: {target}, prediction: {pred}", file=test_output)
+                
+            counter += 1
+            
     test_loss /= len(test_loader.dataset)
 
     with open("test_output.txt", 'a') as test_output:
@@ -53,8 +62,8 @@ def test(model, device, test_loader, loss_fn):
 def run_train():
     # experiment settings:
     num_epochs = 100  # ~100 seems fine
-    max_length = 50  # max len of sequence of dataset (of what you want) ~ should experiment with this
-    use_padding = True
+    max_length = 13370  # max len of sequence of dataset (of what you want) ~ should experiment with this
+    use_padding = 'do_not_pad'
     batch_size = 128
     learning_rate = 6e-4  # good default for Hyena
     rc_aug = True  # reverse complement augmentation
