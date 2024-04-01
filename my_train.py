@@ -62,9 +62,10 @@ def test(model, device, test_loader, loss_fn):
 def run_train():
     # experiment settings:
     num_epochs = 100  # ~100 seems fine
-    max_length = 13370  # max len of sequence of dataset (of what you want) ~ should experiment with this
+    max_length = 500  # max len of sequence of dataset (of what you want) ~ should experiment with this
     use_padding = 'do_not_pad'
     batch_size = 128
+    
     learning_rate = 6e-4  # good default for Hyena
     rc_aug = True  # reverse complement augmentation
     add_eos = False  # add end of sentence token
