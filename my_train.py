@@ -25,7 +25,8 @@ def train(model, device, train_loader, optimizer, epoch, loss_fn, enable_print, 
             # print("output:")
             # print(output, output.shape, output.dtype)
             loss = loss_fn(output, target) #target has shape [batch_size]
-            loss /= len(seq1)  # avg the loss over the batch
+            loss /= len(seq1)  # avg the loss over the batc
+            loss.backward()
             optimizer.step()
             if batch_idx % log_interval == 0:
                 if enable_print:
