@@ -12,11 +12,6 @@
 #SBATCH --mail-type=END
 
 project_dir=.
-job_id=$SLURM_JOB_ID
-
-# optimization hyperparameters
-learning_rate=6e-2
-weight_decay=0.1
 
 source "$project_dir"/venv/bin/activate
-python -m my_train "$job_id" $learning_rate $weight_decay
+python -m colab_train

@@ -919,11 +919,16 @@ class HyenaDNAModel(nn.Module):
         
         
 class ConcatPairHead(nn.Module):
-    def __init__(self, input_size, hidden_size):
+    def __init__(self, input_size, hidden_size, dropout_prob=0.5):
         super().__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, 1)
+        self.fc1 = nn.Linear(input_size, 1000)
+        self.fc2 = nn.Linear(1000, hidden_size)
+        self.fc3 = nn.Linear(hidden_size, hidden_size)
+        self.fc4 = nn.Linear(hidden_size * 1000, hidden_size)
+        #self.fc_pre = nn.Linear(hidden_size, 1)
+        self.fc_out = nn.Linear(hidden_size, 1)
+        self.dropout = nn.Dropout(dropout_prob)
+        self.flatten = nn.Flatten()
 
     def forward(self, hidden_states_seq1, hidden_states_seq2):
         pair_hidden_states = []
@@ -935,14 +940,27 @@ class ConcatPairHead(nn.Module):
         # print("pair hidden states shape:")
         # print(pair_hidden_states.shape)
 
-        x = F.relu(self.fc1(pair_hidden_states))
-        x = F.relu(self.fc2(x))
+        x = F.leaky_relu(self.fc1(pair_hidden_states))
+        x = self.dropout(x)
+        x = F.leaky_relu(self.fc2(x))
+        x = self.dropout(x)
+        # x = F.leaky_relu(self.fc3(x))
+        # x = self.dropout(x)
+        x = self.flatten(x)
+        x = F.leaky_relu(self.fc4(x))
+        x = self.dropout(x)
+        # x = F.leaky_relu(self.fc3(x))
+        # x = self.dropout(x)
+        #x = self.fc_pre(x)
+        #x = self.dropout(x)
         
          # Reduce sequence dimension to get a tensor of shape [128, hidden_size]
-        x = torch.mean(x, dim=1)
-
+        #x = torch.mean(x, dim=1) #grrrr
+        #x = self.fc_pre(x)
+        #x = self.dropout(x)
         #get whether it aligns or not (1 or 0)
-        output = self.fc3(x).squeeze()
+
+        output = self.fc_out(x).squeeze()
 
         return output
 

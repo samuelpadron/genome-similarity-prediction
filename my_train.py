@@ -45,20 +45,21 @@ def test(model, device, test_loader, loss_fn, enable_print, job_id):
     counter = 0
     test_output = open(f"test_{job_id}.txt", 'a') if enable_print else None
     
-    for seq1, seq2, target in test_loader:
-        seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
-        output = model(seq1, seq2)
-        probs = torch.sigmoid(output)
-        test_loss += (loss_fn(output, target.float())).item()
-        pred = (probs > 0.5).long()
-        correct += pred.eq(target.view_as(pred)).sum().item()
+    with torch.no_grad():
+        for seq1, seq2, target in test_loader:
+            seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
+            output = model(seq1, seq2)
+            probs = torch.sigmoid(output)
+            test_loss += (loss_fn(output, target.float())).item()
+            pred = (probs > 0.5).long()
+            correct += pred.eq(target.view_as(pred)).sum().item()
 
-        if enable_print and counter % 100 == 0:
-            print(f"model output: {output}", file=test_output)
-            print(f"probabilities: {probs}", file=test_output)
-            print(f"target: {target}, prediction: {pred}", file=test_output)
-            
-        counter += 1
+            if enable_print and counter % 100 == 0:
+                print(f"model output: {output}", file=test_output)
+                print(f"probabilities: {probs}", file=test_output)
+                print(f"target: {target}, prediction: {pred}", file=test_output)
+                
+            counter += 1
             
     test_loss /= len(test_loader.dataset)
 
@@ -66,7 +67,7 @@ def test(model, device, test_loader, loss_fn, enable_print, job_id):
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
     
-def run_train(job_id, learning_rate=6e-4, weight_decay=0.1):
+def run_train(job_id, learning_rate, weight_decay):
     # experiment settings:
     num_epochs = 100  # ~100 seems fine
     max_length = 500  # max len of sequence of dataset (of what you want) ~ should experiment with this
@@ -145,9 +146,9 @@ def run_train(job_id, learning_rate=6e-4, weight_decay=0.1):
         optimizer.step()
         
     #save model 
-    save_path = os.path.join(os.getcwd(), "trained_model.pth")
-    torch.save(model.state_dict(), save_path)
-    print("Model trained and saved successfully")
+    # save_path = os.path.join(os.getcwd(), "trained_model.pth")
+    # torch.save(model.state_dict(), save_path)
+    # print("Model trained and saved successfully")
 
 if __name__ == "__main__":
     job_id = sys.argv[1]

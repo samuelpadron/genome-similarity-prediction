@@ -7,6 +7,7 @@ data.tar.gz
 *.out
 *.errs
 *.txt
+*.pth
 
 .DS_Store
 .idea/
