@@ -519,8 +519,10 @@ class Block(nn.Module):
         """
         if self.prenorm:
             dropped = self.drop_path1(self.dropout1(hidden_states))
+            print(f"size dropped: {dropped.shape}")
             residual = (dropped + residual) if residual is not None else dropped
             hidden_states = self.norm1(residual.to(dtype=self.norm1.weight.dtype))
+            print(f"hidden_states1: {hidden_states.size()}")
             if self.residual_in_fp32:
                 residual = residual.to(torch.float32)
             if mixer_kwargs is None:
@@ -528,10 +530,15 @@ class Block(nn.Module):
             if mixer_subset is not None:
                 mixer_kwargs['mixer_subset'] = mixer_subset
             hidden_states = self.mixer(hidden_states, **mixer_kwargs)
+            print(f"hidden_states3: {hidden_states.size()}")
             if mixer_subset is not None:
                 residual = residual[:, mixer_subset]
             if not isinstance(self.mlp, nn.Identity):
+                print(f"hidden_states4: {hidden_states.size()}")
                 dropped = self.drop_path2(self.dropout2(hidden_states))
+                print(f"dropped2: {dropped.shape}")
+                print(f"residual: {residual.size()}")
+                print(f"hidden_states2: {hidden_states.size()}")
                 residual = (dropped + residual) if residual is not None else dropped
                 hidden_states = self.norm2(residual.to(dtype=self.norm2.weight.dtype))
                 if self.residual_in_fp32:
@@ -955,8 +962,8 @@ class ConcatPairHead(nn.Module):
         #x = self.dropout(x)
         
          # Reduce sequence dimension to get a tensor of shape [128, hidden_size]
-        #x = torch.mean(x, dim=1) #grrrr
-        #x = self.fc_pre(x)
+
+        #x = self.fc_pre(x)        #x = torch.mean(x, dim=1) #grrrr
         #x = self.dropout(x)
         #get whether it aligns or not (1 or 0)
 

@@ -71,9 +71,9 @@ def test(model, device, test_loader, loss_fn, enable_print, job_id):
 def run_train(job_id, learning_rate, weight_decay):
     # experiment settings:
     num_epochs = 100  # ~100 seems fine
-    max_length = 500  # max len of sequence of dataset (of what you want) ~ should experiment with this
+    max_length = 13370  # max len of sequence of dataset (of what you want) ~ should experiment with this
     use_padding = 'max_length'
-    batch_size = 128
+    batch_size = 64
     
     #rc_aug = True  # reverse complement augmentation
     add_eos = False  # add end of sentence token
@@ -111,7 +111,7 @@ def run_train(job_id, learning_rate, weight_decay):
         padding_side='left', # since HyenaDNA is causal, we pad on the left
     )
 
-    dataset = DatasetSplitter(0.7, 'data/pair_alignment')
+    dataset = DatasetSplitter(0.8, 'data/pair_alignment')
     train_data, test_data = dataset.data
 
     ds_train = SequencePairSimilarityDataset(
@@ -147,9 +147,9 @@ def run_train(job_id, learning_rate, weight_decay):
         optimizer.step()
         
     #save model 
-    # save_path = os.path.join(os.getcwd(), "trained_model.pth")
-    # torch.save(model.state_dict(), save_path)
-    # print("Model trained and saved successfully")
+    save_path = os.path.join(os.getcwd(), f"model_{job_id}.pth")
+    torch.save(model.state_dict(), save_path)
+    print("Model trained and saved successfully")
 
 if __name__ == "__main__":
     job_id = sys.argv[1]
