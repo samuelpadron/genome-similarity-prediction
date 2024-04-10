@@ -25,9 +25,9 @@ class DatasetSplitter:
 
 
   def setup_data(self):
-      data_true = pd.read_csv(self.csv_dir + '/true.csv').drop(['blastz_score'], axis=1) #not needed for now
+      data_true = pd.read_csv(self.csv_dir + '/true500.csv').drop(['blastz_score'], axis=1) #not needed for now
       data_true['label'] = 1
-      data_false = pd.read_csv(self.csv_dir + '/false.csv')
+      data_false = pd.read_csv(self.csv_dir + '/false500.csv')
       data_false['label'] = 0
 
       return pd.concat([data_true, data_false])

@@ -247,7 +247,7 @@ class HyenaOperator(nn.Module):
         super().__init__()
 
         self.d_model = d_model
-        self.l_max = l_max
+        self.l_max = 5_000 #hard code otherwise gets set to 1026 not sure why
         self.order = order
         inner_width = d_model * (order + 1)
         self.dropout = nn.Dropout(dropout)
@@ -519,10 +519,8 @@ class Block(nn.Module):
         """
         if self.prenorm:
             dropped = self.drop_path1(self.dropout1(hidden_states))
-            print(f"size dropped: {dropped.shape}")
             residual = (dropped + residual) if residual is not None else dropped
             hidden_states = self.norm1(residual.to(dtype=self.norm1.weight.dtype))
-            print(f"hidden_states1: {hidden_states.size()}")
             if self.residual_in_fp32:
                 residual = residual.to(torch.float32)
             if mixer_kwargs is None:
@@ -530,15 +528,10 @@ class Block(nn.Module):
             if mixer_subset is not None:
                 mixer_kwargs['mixer_subset'] = mixer_subset
             hidden_states = self.mixer(hidden_states, **mixer_kwargs)
-            print(f"hidden_states3: {hidden_states.size()}")
             if mixer_subset is not None:
                 residual = residual[:, mixer_subset]
             if not isinstance(self.mlp, nn.Identity):
-                print(f"hidden_states4: {hidden_states.size()}")
                 dropped = self.drop_path2(self.dropout2(hidden_states))
-                print(f"dropped2: {dropped.shape}")
-                print(f"residual: {residual.size()}")
-                print(f"hidden_states2: {hidden_states.size()}")
                 residual = (dropped + residual) if residual is not None else dropped
                 hidden_states = self.norm2(residual.to(dtype=self.norm2.weight.dtype))
                 if self.residual_in_fp32:
@@ -928,11 +921,9 @@ class HyenaDNAModel(nn.Module):
 class ConcatPairHead(nn.Module):
     def __init__(self, input_size, hidden_size, dropout_prob=0.5):
         super().__init__()
-        self.fc1 = nn.Linear(input_size, 1000)
-        self.fc2 = nn.Linear(1000, hidden_size)
+        self.fc1 = nn.Linear(input_size, 500)
+        self.fc2 = nn.Linear(500, hidden_size)
         self.fc3 = nn.Linear(hidden_size, hidden_size)
-        self.fc4 = nn.Linear(hidden_size * 1000, hidden_size)
-        #self.fc_pre = nn.Linear(hidden_size, 1)
         self.fc_out = nn.Linear(hidden_size, 1)
         self.dropout = nn.Dropout(dropout_prob)
         self.flatten = nn.Flatten()
@@ -943,29 +934,16 @@ class ConcatPairHead(nn.Module):
             pair_hidden_states.append(torch.cat((hidden_state1, hidden_state2), dim=0))
 
         pair_hidden_states = torch.stack(pair_hidden_states)
-        #check shape of pair_hidden_states
-        # print("pair hidden states shape:")
-        # print(pair_hidden_states.shape)
 
         x = F.leaky_relu(self.fc1(pair_hidden_states))
         x = self.dropout(x)
         x = F.leaky_relu(self.fc2(x))
         x = self.dropout(x)
-        # x = F.leaky_relu(self.fc3(x))
-        # x = self.dropout(x)
-        x = self.flatten(x)
-        x = F.leaky_relu(self.fc4(x))
+        # get a tensor of shape [128, hidden_size]
+        #x = self.flatten(x)
+        x = torch.mean(x, dim=1)
+        x = F.leaky_relu(self.fc3(x))
         x = self.dropout(x)
-        # x = F.leaky_relu(self.fc3(x))
-        # x = self.dropout(x)
-        #x = self.fc_pre(x)
-        #x = self.dropout(x)
-        
-         # Reduce sequence dimension to get a tensor of shape [128, hidden_size]
-
-        #x = self.fc_pre(x)        #x = torch.mean(x, dim=1) #grrrr
-        #x = self.dropout(x)
-        #get whether it aligns or not (1 or 0)
 
         output = self.fc_out(x).squeeze()
 
@@ -1000,7 +978,6 @@ class CustomHyenaDNAModel(nn.Module):
             initializer_cfg=initializer_cfg, residual_in_fp32=residual_in_fp32,
             **factory_kwargs, **kwargs
         )
-        
         self.head = ConcatPairHead(input_size=d_model, hidden_size=d_model)
 
     def forward(self, seq1, seq2, position_ids=None, state=None): # state for the repo interface

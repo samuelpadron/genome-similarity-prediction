@@ -20,10 +20,6 @@ def train(model, device, train_loader, optimizer, epoch, loss_fn, enable_print, 
             seq1, seq2, target = seq1.to(device), seq2.to(device), target.to(device)
             optimizer.zero_grad()
             output = model(seq1, seq2)
-            # print("target:")
-            # print(target, target.shape, target.dtype)
-            # print("output:")
-            # print(output, output.shape, output.dtype)
             loss = loss_fn(output, target) #target has shape [batch_size]
             loss /= len(seq1)  # avg the loss over the batc
             loss.backward()
@@ -68,12 +64,16 @@ def test(model, device, test_loader, loss_fn, enable_print, job_id):
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
     
-def run_train(job_id, learning_rate, weight_decay):
+def run_train(job_id, batch_size, learning_rate, weight_decay):
     # experiment settings:
     num_epochs = 100  # ~100 seems fine
-    max_length = 13370  # max len of sequence of dataset (of what you want) ~ should experiment with this
+    max_length = 500  # max len of sequence of dataset (of what you want) ~ should experiment with this
     use_padding = 'max_length'
-    batch_size = 64
+    
+    print(f"num_epochs: {num_epochs}")
+    print(f"batch size: {batch_size}")
+    print(f"learning rate: {learning_rate}")
+    print(f"weight_decay: {weight_decay}")
     
     #rc_aug = True  # reverse complement augmentation
     add_eos = False  # add end of sentence token
@@ -111,7 +111,7 @@ def run_train(job_id, learning_rate, weight_decay):
         padding_side='left', # since HyenaDNA is causal, we pad on the left
     )
 
-    dataset = DatasetSplitter(0.8, 'data/pair_alignment')
+    dataset = DatasetSplitter(0.7, 'data/pair_alignment')
     train_data, test_data = dataset.data
 
     ds_train = SequencePairSimilarityDataset(
@@ -153,7 +153,8 @@ def run_train(job_id, learning_rate, weight_decay):
 
 if __name__ == "__main__":
     job_id = sys.argv[1]
-    learning_rate = float(sys.argv[2]) if len(sys.argv) > 2 else 6e-4
-    weight_decay = float(sys.argv[3]) if len(sys.argv) > 3 else 0.1
+    batch_size = int(sys.argv[2]) if len(sys.argv) > 2 else 128
+    learning_rate = float(sys.argv[3]) if len(sys.argv) > 3 else 6e-4
+    weight_decay = float(sys.argv[4]) if len(sys.argv) > 4 else 0.1
     
-    run_train(job_id, learning_rate, weight_decay)
+    run_train(job_id, batch_size, learning_rate, weight_decay)
