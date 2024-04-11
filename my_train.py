@@ -3,12 +3,10 @@ import json
 import os
 import subprocess
 import torch
-import transformers
 import huggingface
 import standalone_hyenadna
 from torch.utils.data import DataLoader
 from dataset_splitter import DatasetSplitter
-from transformers import PreTrainedModel, AutoModelForCausalLM, PretrainedConfig
 from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilarityDataset
 
 def train(model, device, train_loader, optimizer, epoch, loss_fn, enable_print, job_id, log_interval=10):
@@ -79,7 +77,7 @@ def run_train(job_id, batch_size, learning_rate, weight_decay):
     add_eos = False  # add end of sentence token
 
     # for fine-tuning, only the 'tiny' model can fit on colab
-    pretrained_model_name = 'hyenadna-tiny-1k-seqlen'  # use None if training from scratch
+    pretrained_model_name = 'hyenadna-small-32k-seqlen'  # use None if training from scratch
 
     # you can override with your own backbone config here if you want,
     # otherwise we'll load the HF one by default
@@ -88,20 +86,14 @@ def run_train(job_id, batch_size, learning_rate, weight_decay):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print("Using device:", device)
 
-    # instantiate the model (pretrained here)
-    if pretrained_model_name in ['hyenadna-tiny-1k-seqlen']:
-        # use the pretrained Huggingface wrapper instead
-        model = huggingface.HyenaDNAPreTrainedModel.from_pretrained(
-            '/scratch/spadronalcala',
-            pretrained_model_name,
-            download=True,
-            config=backbone_cfg,
-            device=device
-        )
-
-    # from scratch
-    else:
-        model = standalone_hyenadna.CustomHyenaDNAModelHyenaDNAModel(**backbone_cfg, use_head=use_head, n_classes=n_classes)
+    # use pretrained Huggingface wrapper
+    model = huggingface.HyenaDNAPreTrainedModel.from_pretrained(
+        '/scratch/spadronalcala',
+        pretrained_model_name,
+        download=True,
+        config=backbone_cfg,
+        device=device
+    )
 
     # create tokenizer
     tokenizer = standalone_hyenadna.CharacterTokenizer(
@@ -143,13 +135,13 @@ def run_train(job_id, batch_size, learning_rate, weight_decay):
 
     for epoch in range(num_epochs):
         train(model, device, train_loader, optimizer, epoch, loss_fn, True, job_id)
-        test(model, device, test_loader, loss_fn, True, job_id)
+        test(model, device, test_loader, loss_fn, False, job_id)
         optimizer.step()
         
     #save model 
-    save_path = os.path.join(os.getcwd(), f"model_{job_id}.pth")
-    torch.save(model.state_dict(), save_path)
-    print("Model trained and saved successfully")
+    # save_path = os.path.join(os.getcwd(), f"model_{job_id}.pth")
+    # torch.save(model.state_dict(), save_path)
+    # print("Model trained and saved successfully")
 
 if __name__ == "__main__":
     job_id = sys.argv[1]
