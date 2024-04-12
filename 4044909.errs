@@ -1,0 +1,4 @@
+/scratch/spadronalcala/virtual_environments/hyena-dna-genome-similarity/lib/python3.10/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: libtorch_cuda_cu.so: cannot open shared object file: No such file or directory
+  warn(f"Failed to load image Python extension: {e}")
+Cloning into 'hyenadna-small-32k-seqlen'...
+slurmstepd: error: *** JOB 4044909 ON cn47 CANCELLED AT 2024-04-12T10:01:30 DUE TO TIME LIMIT ***

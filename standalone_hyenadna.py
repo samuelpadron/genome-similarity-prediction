@@ -978,7 +978,10 @@ class CustomHyenaDNAModel(nn.Module):
             initializer_cfg=initializer_cfg, residual_in_fp32=residual_in_fp32,
             **factory_kwargs, **kwargs
         )
+         
         self.head = ConcatPairHead(input_size=d_model, hidden_size=d_model)
+        
+        # self.head == nn.DataParallel(self.head)
 
     def forward(self, seq1, seq2, position_ids=None, state=None): # state for the repo interface
         hidden_states_seq1 = self.backbone(seq1, position_ids=position_ids)

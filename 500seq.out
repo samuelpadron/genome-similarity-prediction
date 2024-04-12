@@ -1,0 +1,333 @@
+Git LFS initialized.
+Using device: cuda
+Loaded pretrained weights ok!
+
+Test set: Average loss: 0.0023, Accuracy: 23840/26870 (88.72%)
+
+
+Test set: Average loss: 0.0023, Accuracy: 24018/26870 (89.39%)
+
+
+Test set: Average loss: 0.0023, Accuracy: 23987/26870 (89.27%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 23967/26870 (89.20%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 23941/26870 (89.10%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24057/26870 (89.53%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24012/26870 (89.36%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24028/26870 (89.42%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24122/26870 (89.77%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24081/26870 (89.62%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24003/26870 (89.33%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24015/26870 (89.37%)
+
+
+Test set: Average loss: 0.0021, Accuracy: 24118/26870 (89.76%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24092/26870 (89.66%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24065/26870 (89.56%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24075/26870 (89.60%)
+
+
+Test set: Average loss: 0.0021, Accuracy: 24162/26870 (89.92%)
+
+
+Test set: Average loss: 0.0021, Accuracy: 24160/26870 (89.91%)
+
+
+Test set: Average loss: 0.0021, Accuracy: 24173/26870 (89.96%)
+
+
+Test set: Average loss: 0.0021, Accuracy: 24081/26870 (89.62%)
+
+
+Test set: Average loss: 0.0021, Accuracy: 24140/26870 (89.84%)
+
+
+Test set: Average loss: 0.0021, Accuracy: 24116/26870 (89.75%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24119/26870 (89.76%)
+
+
+Test set: Average loss: 0.0021, Accuracy: 24116/26870 (89.75%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24081/26870 (89.62%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24142/26870 (89.85%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 23973/26870 (89.22%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 23999/26870 (89.32%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24086/26870 (89.64%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24103/26870 (89.70%)
+
+
+Test set: Average loss: 0.0022, Accuracy: 24026/26870 (89.42%)
+
+
+Test set: Average loss: 0.0023, Accuracy: 23993/26870 (89.29%)
+
+
+Test set: Average loss: 0.0023, Accuracy: 24004/26870 (89.33%)
+
+
+Test set: Average loss: 0.0023, Accuracy: 24058/26870 (89.53%)
+
+
+Test set: Average loss: 0.0024, Accuracy: 23882/26870 (88.88%)
+
+
+Test set: Average loss: 0.0024, Accuracy: 24048/26870 (89.50%)
+
+
+Test set: Average loss: 0.0025, Accuracy: 23938/26870 (89.09%)
+
+
+Test set: Average loss: 0.0024, Accuracy: 23960/26870 (89.17%)
+
+
+Test set: Average loss: 0.0025, Accuracy: 23856/26870 (88.78%)
+
+
+Test set: Average loss: 0.0025, Accuracy: 23862/26870 (88.81%)
+
+
+Test set: Average loss: 0.0026, Accuracy: 23999/26870 (89.32%)
+
+
+Test set: Average loss: 0.0026, Accuracy: 23921/26870 (89.02%)
+
+
+Test set: Average loss: 0.0026, Accuracy: 23978/26870 (89.24%)
+
+
+Test set: Average loss: 0.0028, Accuracy: 23911/26870 (88.99%)
+
+
+Test set: Average loss: 0.0026, Accuracy: 24013/26870 (89.37%)
+
+
+Test set: Average loss: 0.0025, Accuracy: 23969/26870 (89.20%)
+
+
+Test set: Average loss: 0.0025, Accuracy: 23921/26870 (89.02%)
+
+
+Test set: Average loss: 0.0026, Accuracy: 23940/26870 (89.10%)
+
+
+Test set: Average loss: 0.0028, Accuracy: 23989/26870 (89.28%)
+
+
+Test set: Average loss: 0.0028, Accuracy: 23969/26870 (89.20%)
+
+
+Test set: Average loss: 0.0028, Accuracy: 23838/26870 (88.72%)
+
+
+Test set: Average loss: 0.0026, Accuracy: 23814/26870 (88.63%)
+
+
+Test set: Average loss: 0.0028, Accuracy: 24002/26870 (89.33%)
+
+
+Test set: Average loss: 0.0029, Accuracy: 23836/26870 (88.71%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23863/26870 (88.81%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23924/26870 (89.04%)
+
+
+Test set: Average loss: 0.0031, Accuracy: 23982/26870 (89.25%)
+
+
+Test set: Average loss: 0.0029, Accuracy: 23794/26870 (88.55%)
+
+
+Test set: Average loss: 0.0031, Accuracy: 23965/26870 (89.19%)
+
+
+Test set: Average loss: 0.0028, Accuracy: 23859/26870 (88.79%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23880/26870 (88.87%)
+
+
+Test set: Average loss: 0.0026, Accuracy: 23788/26870 (88.53%)
+
+
+Test set: Average loss: 0.0028, Accuracy: 23864/26870 (88.81%)
+
+
+Test set: Average loss: 0.0033, Accuracy: 23933/26870 (89.07%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23989/26870 (89.28%)
+
+
+Test set: Average loss: 0.0029, Accuracy: 23865/26870 (88.82%)
+
+
+Test set: Average loss: 0.0029, Accuracy: 23889/26870 (88.91%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23848/26870 (88.75%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23837/26870 (88.71%)
+
+
+Test set: Average loss: 0.0029, Accuracy: 23867/26870 (88.82%)
+
+
+Test set: Average loss: 0.0031, Accuracy: 23887/26870 (88.90%)
+
+
+Test set: Average loss: 0.0031, Accuracy: 23789/26870 (88.53%)
+
+
+Test set: Average loss: 0.0029, Accuracy: 23863/26870 (88.81%)
+
+
+Test set: Average loss: 0.0033, Accuracy: 23927/26870 (89.05%)
+
+
+Test set: Average loss: 0.0031, Accuracy: 23943/26870 (89.11%)
+
+
+Test set: Average loss: 0.0031, Accuracy: 23795/26870 (88.56%)
+
+
+Test set: Average loss: 0.0031, Accuracy: 23858/26870 (88.79%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23647/26870 (88.01%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23737/26870 (88.34%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23893/26870 (88.92%)
+
+
+Test set: Average loss: 0.0032, Accuracy: 23721/26870 (88.28%)
+
+
+Test set: Average loss: 0.0028, Accuracy: 23819/26870 (88.65%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23821/26870 (88.65%)
+
+
+Test set: Average loss: 0.0031, Accuracy: 23866/26870 (88.82%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23949/26870 (89.13%)
+
+
+Test set: Average loss: 0.0031, Accuracy: 23869/26870 (88.83%)
+
+
+Test set: Average loss: 0.0032, Accuracy: 23791/26870 (88.54%)
+
+
+Test set: Average loss: 0.0028, Accuracy: 23828/26870 (88.68%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23935/26870 (89.08%)
+
+
+Test set: Average loss: 0.0033, Accuracy: 23929/26870 (89.05%)
+
+
+Test set: Average loss: 0.0033, Accuracy: 23920/26870 (89.02%)
+
+
+Test set: Average loss: 0.0031, Accuracy: 23931/26870 (89.06%)
+
+
+Test set: Average loss: 0.0032, Accuracy: 23938/26870 (89.09%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23845/26870 (88.74%)
+
+
+Test set: Average loss: 0.0031, Accuracy: 23914/26870 (89.00%)
+
+
+Test set: Average loss: 0.0029, Accuracy: 23878/26870 (88.86%)
+
+
+Test set: Average loss: 0.0032, Accuracy: 23882/26870 (88.88%)
+
+
+Test set: Average loss: 0.0030, Accuracy: 23867/26870 (88.82%)
+
+
+Test set: Average loss: 0.0027, Accuracy: 23831/26870 (88.69%)
+
+
+Test set: Average loss: 0.0032, Accuracy: 23826/26870 (88.67%)
+
+Model trained and saved successfully
+
+
+###############################################################################
+Science Cluster
+Job 4005546 for user 'spadronalcala'
+Finished at: Thu Apr  4 00:49:06 CEST 2024
+
+Job details:
+============
+
+Name                : experiment.sh
+User                : spadronalcala
+Partition           : csedu
+Nodes               : cn47
+Cores               : 2
+State               : COMPLETED
+Submit              : 2024-04-03T20:50:05
+Start               : 2024-04-03T20:50:06
+End                 : 2024-04-04T00:49:05
+Reserved walltime   : 07:00:00
+Used walltime       : 03:58:59
+Used CPU time       : 03:58:52 (efficiency: 49.98%)
+% User (Computation): 99.86%
+% System (I/O)      :  0.14%
+Mem reserved        : 4G
+Max Mem used        : 2.76G (cn47)
+Max Disk Write      : 0.00  (cn47)
+Max Disk Read       : 10.24K (cn47)
+

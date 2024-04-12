@@ -49,10 +49,10 @@ def test(model, device, test_loader, loss_fn, enable_print, job_id):
             pred = (probs > 0.5).long()
             correct += pred.eq(target.view_as(pred)).sum().item()
 
-            if enable_print and counter % 100 == 0:
-                print(f"model output: {output}", file=test_output)
-                print(f"probabilities: {probs}", file=test_output)
-                print(f"target: {target}, prediction: {pred}", file=test_output)
+            # if enable_print and counter % 100 == 0:
+            #     print(f"model output: {output}", file=test_output)
+            #     print(f"probabilities: {probs}", file=test_output)
+            #     print(f"target: {target}, prediction: {pred}", file=test_output)
                 
             counter += 1
             
@@ -60,7 +60,7 @@ def test(model, device, test_loader, loss_fn, enable_print, job_id):
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+        100. * correct / len(test_loader.dataset)), file=test_output)
     
 def run_train(job_id, batch_size, learning_rate, weight_decay):
     # experiment settings:
@@ -135,7 +135,7 @@ def run_train(job_id, batch_size, learning_rate, weight_decay):
 
     for epoch in range(num_epochs):
         train(model, device, train_loader, optimizer, epoch, loss_fn, True, job_id)
-        test(model, device, test_loader, loss_fn, False, job_id)
+        test(model, device, test_loader, loss_fn, True, job_id)
         optimizer.step()
         
     #save model 

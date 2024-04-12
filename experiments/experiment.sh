@@ -1,7 +1,7 @@
 #!/bin/bash -e
 #SBATCH --account=cseduproject
 #SBATCH --partition=csedu
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:2
 #SBATCH --qos=csedu-normal
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -15,7 +15,7 @@ project_dir=.
 job_id=$SLURM_JOB_ID
 
 # optimization hyperparameters
-batch_size=32
+batch_size=64
 learning_rate=6e-4
 weight_decay=0.001
 

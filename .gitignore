@@ -4,9 +4,6 @@ data.tar.gz
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 *.lprof
-*.out
-*.errs
-*.txt
 *.pth
 
 .DS_Store
