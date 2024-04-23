@@ -1,0 +1,31 @@
+Git LFS initialized.
+Loaded pretrained weights ok!
+
+
+###############################################################################
+Science Cluster
+Job 4327294 for user 'spadronalcala'
+Finished at: Tue Apr 23 19:26:13 CEST 2024
+
+Job details:
+============
+
+Name                : evaluate_model.sh
+User                : spadronalcala
+Partition           : csedu
+Nodes               : cn47
+Cores               : 2
+State               : COMPLETED
+Submit              : 2024-04-23T19:26:03
+Start               : 2024-04-23T19:26:04
+End                 : 2024-04-23T19:26:13
+Reserved walltime   : 07:00:00
+Used walltime       : 00:00:09
+Used CPU time       : 00:00:09 (efficiency: 50.97%)
+% User (Computation): 68.52%
+% System (I/O)      : 31.47%
+Mem reserved        : 4G
+Max Mem used        : 4.00K (cn47)
+Max Disk Write      : 0.00  (cn47)
+Max Disk Read       : 0.00  (cn47)
+

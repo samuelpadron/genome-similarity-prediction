@@ -38,7 +38,6 @@ def test(model, device, test_loader, loss_fn, enable_print, job_id):
     test_loss = 0
     correct = 0
     counter = 0
-    test_output = open(f"test_{job_id}.txt", 'a') if enable_print else None
     
     with torch.no_grad():
         for seq1, seq2, target in test_loader:
@@ -58,9 +57,10 @@ def test(model, device, test_loader, loss_fn, enable_print, job_id):
             
     test_loss /= len(test_loader.dataset)
 
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)), file=test_output)
+    with open(f"test_{job_id}.txt", 'a') as test_output:
+        print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
+            test_loss, correct, len(test_loader.dataset),
+            100. * correct / len(test_loader.dataset)), file=test_output)
     
 def run_train(job_id, batch_size, learning_rate, weight_decay):
     # experiment settings:
@@ -77,7 +77,7 @@ def run_train(job_id, batch_size, learning_rate, weight_decay):
     add_eos = False  # add end of sentence token
 
     # for fine-tuning, only the 'tiny' model can fit on colab
-    pretrained_model_name = 'hyenadna-small-32k-seqlen'  # use None if training from scratch
+    pretrained_model_name = 'hyenadna-tiny-1k-seqlen'  # use None if training from scratch
 
     # you can override with your own backbone config here if you want,
     # otherwise we'll load the HF one by default

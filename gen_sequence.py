@@ -17,7 +17,6 @@ for i in tqdm(range(1, num_pairs + 1)):
     pair_data = {
         'sequence_1': sequence,
         'sequence_2': sequence,
-        'label': 1
     }
     
     data.append(pair_data)

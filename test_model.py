@@ -2,6 +2,7 @@ import torch
 import pandas as pd
 import os
 import sys
+import huggingface
 import standalone_hyenadna
 from torch.utils.data import DataLoader
 from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilarityDataset
@@ -9,7 +10,7 @@ from torch import nn
 
 
 def run_evaluation(model, model_path, device, data_loader):
-    test_output = f"{os.path.splitext(model_path)[0]}_evaluation.txt"
+    test_output = open(f"{os.path.splitext(model_path)[0]}_evaluation.txt", 'w')
     model.eval()
     loss_fn = torch.nn.BCEWithLogitsLoss()
     test_loss = 0
@@ -32,6 +33,7 @@ def run_evaluation(model, model_path, device, data_loader):
 
 def evaluate_model(input_file):
     data = pd.read_csv(os.path.join('/vol/csedu-nobackup/project/spadronalcala/', input_file))
+    pretrained_model_name = 'hyenadna-tiny-1k-seqlen'
     batch_size = 128
     max_length = 500    #TODO: make function to use script from laptop to get max_length
     use_padding = 'max_length'
@@ -55,13 +57,22 @@ def evaluate_model(input_file):
     test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=False)
 
     # load trained model
+    backbone_cfg = None
     model_path = 'base500.pth'
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model = torch.load(model_path)
+    
+    model = huggingface.HyenaDNAPreTrainedModel.from_pretrained(
+        '/scratch/spadronalcala',
+        pretrained_model_name,
+        download=True,
+        config=backbone_cfg,
+        device=device
+    )
+    model.load_state_dict(torch.load('base500.pth'))
     model.to(device)
 
     run_evaluation(model, model_path, device, test_loader)
 
 if __name__ == "__main__":
-    file = sys.argv[0]
+    file = sys.argv[1]
     evaluate_model(file)
