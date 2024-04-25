@@ -247,7 +247,7 @@ class HyenaOperator(nn.Module):
         super().__init__()
 
         self.d_model = d_model
-        self.l_max = 5_000 #hard code otherwise gets set to 1026 not sure why
+        self.l_max = 13_370 #hard code otherwise gets set to 1026 not sure why
         self.order = order
         inner_width = d_model * (order + 1)
         self.dropout = nn.Dropout(dropout)
@@ -993,14 +993,17 @@ class CustomHyenaDNAModel(nn.Module):
             initializer_cfg=initializer_cfg, residual_in_fp32=residual_in_fp32,
             **factory_kwargs, **kwargs
         )
+        
+        for param in self.backbone.parameters():
+            param.requires_grad = False
          
         self.head = ConcatPairHead(input_size=d_model, hidden_size=d_model)
-        
-        # self.head == nn.DataParallel(self.head)
+    
 
     def forward(self, seq1, seq2, position_ids=None, state=None): # state for the repo interface
-        hidden_states_seq1 = self.backbone(seq1, position_ids=position_ids)
-        hidden_states_seq2 = self.backbone(seq2, position_ids=position_ids)
+        with torch.no_grad():
+            hidden_states_seq1 = self.backbone(seq1, position_ids=position_ids)
+            hidden_states_seq2 = self.backbone(seq2, position_ids=position_ids)
         
         output = self.head(hidden_states_seq1, hidden_states_seq2)
         return output

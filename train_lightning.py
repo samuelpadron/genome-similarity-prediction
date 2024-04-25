@@ -17,7 +17,7 @@ class HyenaDNAModule(pl.LightningModule):
             download=True,
             config=backbone_cfg,
             device=device,
-        )
+        )        
         self.loss_fn = loss_fn
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
@@ -48,8 +48,8 @@ class HyenaDNAModule(pl.LightningModule):
     
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
-            self.model.parameters(),
-            lr=self.learning_rate,
+            filter(lambda p: p.requires_grad, self.model.parameters()), 
+            lr=self.learning_rate, 
             weight_decay=self.weight_decay,
         )
         
@@ -98,8 +98,8 @@ if __name__ == "__main__":
     weight_decay = float(sys.argv[4]) if len(sys.argv) > 4 else 0.1
     num_epochs = 100
     
-    pretrained_model_name = 'hyenadna-tiny-1k-seqlen'
-    max_length = 500
+    pretrained_model_name = 'hyenadna-small-32k-seqlen'
+    max_length = 13370
     use_padding = 'max_length'
     add_eos = False
     
