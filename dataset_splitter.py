@@ -3,9 +3,9 @@ from sklearn.model_selection import train_test_split
 
 class DatasetSplitter:
 
-  def __init__(self, split_ratio, csv_dir):
+  def __init__(self, split_ratio, data_path):
     self.split_ratio = split_ratio
-    self.csv_dir = csv_dir
+    self.data_path = data_path
     self.data = self.set_split(self.split_ratio, self.setup_data())
 
   def set_split(self, split_ratio, data: pd.DataFrame):
@@ -25,9 +25,9 @@ class DatasetSplitter:
 
 
   def setup_data(self):
-      data_true = pd.read_csv(self.csv_dir + '/true500.csv').drop(['blastz_score'], axis=1) #not needed for now
+      data_true = pd.read_csv(self.data_path + '_true.csv').drop(['blastz_score'], axis=1) #not needed for now
       data_true['label'] = 1
-      data_false = pd.read_csv(self.csv_dir + '/false500.csv')
+      data_false = pd.read_csv(self.data_path + '_false.csv')
       data_false['label'] = 0
 
       return pd.concat([data_true, data_false])

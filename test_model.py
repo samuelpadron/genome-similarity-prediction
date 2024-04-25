@@ -9,8 +9,8 @@ from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilari
 from torch import nn
 
 
-def run_evaluation(model, model_path, device, data_loader):
-    test_output = open(f"{os.path.splitext(model_path)[0]}_evaluation.txt", 'w')
+def run_evaluation(model, output_file, device, data_loader):
+    test_output = open(f"{output_file}", 'w')
     model.eval()
     loss_fn = torch.nn.BCEWithLogitsLoss()
     test_loss = 0
@@ -31,8 +31,9 @@ def run_evaluation(model, model_path, device, data_loader):
         test_loss, correct, len(data_loader.dataset),
         100. * correct / len(data_loader.dataset)), file=test_output)
 
-def evaluate_model(input_file):
-    data = pd.read_csv(os.path.join('/vol/csedu-nobackup/project/spadronalcala/', input_file))
+def evaluate_model(input_file, output_file):
+    data = pd.read_csv(os.path.join('/vol/csedu-nobackup/project/spadronalcala/pair_alignment/', input_file))
+    data['label'] = 1
     pretrained_model_name = 'hyenadna-tiny-1k-seqlen'
     batch_size = 128
     max_length = 500    #TODO: make function to use script from laptop to get max_length
@@ -71,8 +72,9 @@ def evaluate_model(input_file):
     model.load_state_dict(torch.load('base500.pth'))
     model.to(device)
 
-    run_evaluation(model, model_path, device, test_loader)
+    run_evaluation(model, output_file, device, test_loader)
 
 if __name__ == "__main__":
-    file = sys.argv[1]
-    evaluate_model(file)
+    csv_file = sys.argv[1]
+    output_file = sys.argv[2]
+    evaluate_model(csv_file, output_file)

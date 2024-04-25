@@ -103,7 +103,7 @@ def run_train(job_id, batch_size, learning_rate, weight_decay):
         padding_side='left', # since HyenaDNA is causal, we pad on the left
     )
 
-    dataset = DatasetSplitter(0.7, 'data/pair_alignment')
+    dataset = DatasetSplitter(0.7, '/vol/csedu-nobackup/project/spadronalcala/pair_alignment/500')
     train_data, test_data = dataset.data
 
     ds_train = SequencePairSimilarityDataset(

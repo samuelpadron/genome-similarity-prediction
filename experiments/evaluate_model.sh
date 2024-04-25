@@ -14,4 +14,4 @@ project_dir=.
 
 source "$project_dir"/venv/bin/activate
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-python -m test_model simulated_dna_pairs.csv
+python -m test_model panTro6_true.csv panTro6_evaluation.txt
