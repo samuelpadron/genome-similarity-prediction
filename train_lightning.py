@@ -124,7 +124,7 @@ if __name__ == "__main__":
     )
     
     data_module = HyenaDNADataModule(
-        data_path='/vol/csedu-nobackup/project/spadronalcala/pair_alignment/500',
+        data_path='/vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6',
         tokenizer=tokenizer,
         batch_size=batch_size,
         max_length=max_length,
@@ -137,6 +137,7 @@ if __name__ == "__main__":
         accelerator='gpu',
         devices=-1,  
         strategy='ddp',  
+        log_every_n_steps=1000000
     )
     
     trainer.fit(module, datamodule=data_module)

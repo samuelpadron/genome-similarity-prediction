@@ -924,7 +924,7 @@ class ConcatPairHead(nn.Module):
         self.fc1 = nn.Linear(input_size, 1000)
         self.fc2 = nn.Linear(1000, hidden_size)
         self.fc3 = nn.Linear(hidden_size, hidden_size)
-        self.fc4 = nn.Linear(hidden_size * 1000, hidden_size)
+        self.fc4 = nn.Linear(hidden_size, hidden_size)
         #self.fc_pre = nn.Linear(hidden_size, 1)
         self.fc_out = nn.Linear(hidden_size, 1)
         self.dropout = nn.Dropout(dropout_prob)
@@ -946,7 +946,8 @@ class ConcatPairHead(nn.Module):
         x = self.dropout(x)
         # x = F.leaky_relu(self.fc3(x))
         # x = self.dropout(x)
-        x = self.flatten(x)
+        #x = self.flatten(x)
+        x = torch.mean(x, dim=1)
         x = F.leaky_relu(self.fc4(x))
         x = self.dropout(x)
         # x = F.leaky_relu(self.fc3(x))
@@ -1005,8 +1006,7 @@ class CustomHyenaDNAModel(nn.Module):
             hidden_states_seq1 = self.backbone(seq1, position_ids=position_ids)
             hidden_states_seq2 = self.backbone(seq2, position_ids=position_ids)
         
-        output = self.head(hidden_states_seq1, hidden_states_seq2)
-        return output
+        return self.head(hidden_states_seq1, hidden_states_seq2)
 
 """# Data pipeline
 
