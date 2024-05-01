@@ -14,7 +14,7 @@ class HyenaDNAModule(pl.LightningModule):
         self.model = huggingface.HyenaDNAPreTrainedModel.from_pretrained(
             '/scratch/spadronalcala',
             pretrained_model_name,
-            download=True,
+            download=False,
             config=backbone_cfg,
             device=device,
         )        
