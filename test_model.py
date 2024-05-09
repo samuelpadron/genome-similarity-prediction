@@ -32,11 +32,15 @@ def run_evaluation(model, output_file, device, data_loader):
         100. * correct / len(data_loader.dataset)), file=test_output)
 
 def evaluate_model(input_file, output_file):
-    data = pd.read_csv(os.path.join('/vol/csedu-nobackup/project/spadronalcala/pair_alignment/', input_file))
-    data['label'] = 1
-    pretrained_model_name = 'hyenadna-tiny-1k-seqlen'
-    batch_size = 128
-    max_length = 500    #TODO: make function to use script from laptop to get max_length
+    data_true = pd.read_csv(os.path.join('/vol/csedu-nobackup/project/spadronalcala/pair_alignment/', input_file) + '_true.csv')
+    data_true['label'] = 1
+    data_false = pd.read_csv(os.path.join('/vol/csedu-nobackup/project/spadronalcala/pair_alignment/', input_file) + '_false.csv')
+    data_false['label'] = 0
+    data = pd.concat([data_true, data_false])
+    
+    pretrained_model_name = 'hyenadna-small-32k-seqlen'
+    batch_size = 16
+    max_length = 13370    #TODO: make function to use script from laptop to get max_length
     use_padding = 'max_length'
     add_eos = False
     
@@ -59,22 +63,22 @@ def evaluate_model(input_file, output_file):
 
     # load trained model
     backbone_cfg = None
-    model_path = 'base500.pth'
+    model_path = 'model_4386641.pth'
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     model = huggingface.HyenaDNAPreTrainedModel.from_pretrained(
         '/scratch/spadronalcala',
         pretrained_model_name,
-        download=True,
+        download=False,
         config=backbone_cfg,
         device=device
     )
-    model.load_state_dict(torch.load('base500.pth'))
+    model.load_state_dict(torch.load('model_4386641.pth'), strict=False)
     model.to(device)
 
     run_evaluation(model, output_file, device, test_loader)
 
 if __name__ == "__main__":
-    csv_file = sys.argv[1]
+    input_file = sys.argv[1]
     output_file = sys.argv[2]
-    evaluate_model(csv_file, output_file)
+    evaluate_model(input_file, output_file)

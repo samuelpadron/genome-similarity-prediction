@@ -921,49 +921,30 @@ class HyenaDNAModel(nn.Module):
 class ConcatPairHead(nn.Module):
     def __init__(self, input_size, hidden_size, dropout_prob=0.5):
         super().__init__()
-        self.fc1 = nn.Linear(input_size, 1000)
-        self.fc2 = nn.Linear(1000, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, hidden_size)
-        self.fc4 = nn.Linear(hidden_size, hidden_size)
-        #self.fc_pre = nn.Linear(hidden_size, 1)
-        self.fc_out = nn.Linear(hidden_size, 1)
+        self.fc_out = nn.Linear(13370 * 2 * hidden_size, 1)
         self.dropout = nn.Dropout(dropout_prob)
         self.flatten = nn.Flatten()
-
+        print(f"inp size: {input_size}, hidden_size: {hidden_size}")
+        
+        
     def forward(self, hidden_states_seq1, hidden_states_seq2):
         pair_hidden_states = []
         for hidden_state1, hidden_state2 in zip (hidden_states_seq1, hidden_states_seq2):
             pair_hidden_states.append(torch.cat((hidden_state1, hidden_state2), dim=0))
 
         pair_hidden_states = torch.stack(pair_hidden_states)
-        #check shape of pair_hidden_states
-        # print("pair hidden states shape:")
-        # print(pair_hidden_states.shape)
-
-        x = F.leaky_relu(self.fc1(pair_hidden_states))
+        print(f"seq pair size: {pair_hidden_states.shape}")
+       
+        x = self.flatten(pair_hidden_states)
+        print(f"x after flatten: {x.shape}")
+        x = F.leaky_relu(self.fc_out(x))
+        print(f"x after layer fc_out: {x.shape}")
         x = self.dropout(x)
-        x = F.leaky_relu(self.fc2(x))
-        x = self.dropout(x)
-        # x = F.leaky_relu(self.fc3(x))
-        # x = self.dropout(x)
-        #x = self.flatten(x)
-        x = torch.mean(x, dim=1)
-        x = F.leaky_relu(self.fc4(x))
-        x = self.dropout(x)
-        # x = F.leaky_relu(self.fc3(x))
-        # x = self.dropout(x)
-        #x = self.fc_pre(x)
-        #x = self.dropout(x)
+        output = x.squeeze()
+        print(f"output shape: {output.shape}")
         
-         # Reduce sequence dimension to get a tensor of shape [128, hidden_size]
-        #x = torch.mean(x, dim=1) #grrrr
-        #x = self.fc_pre(x)
-        #x = self.dropout(x)
-        #get whether it aligns or not (1 or 0)
-
-        output = self.fc_out(x).squeeze()
-
         return output
+
 
 
 class CustomHyenaDNAModel(nn.Module):
@@ -1002,9 +983,8 @@ class CustomHyenaDNAModel(nn.Module):
     
 
     def forward(self, seq1, seq2, position_ids=None, state=None): # state for the repo interface
-        with torch.no_grad():
-            hidden_states_seq1 = self.backbone(seq1, position_ids=position_ids)
-            hidden_states_seq2 = self.backbone(seq2, position_ids=position_ids)
+        hidden_states_seq1 = self.backbone(seq1, position_ids=position_ids)
+        hidden_states_seq2 = self.backbone(seq2, position_ids=position_ids)
         
         return self.head(hidden_states_seq1, hidden_states_seq2)
 

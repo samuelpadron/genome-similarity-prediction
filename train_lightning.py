@@ -124,7 +124,7 @@ if __name__ == "__main__":
     )
     
     data_module = HyenaDNADataModule(
-        data_path='/vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6',
+        data_path='/vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6_1024_13370',
         tokenizer=tokenizer,
         batch_size=batch_size,
         max_length=max_length,
