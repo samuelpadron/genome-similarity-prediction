@@ -921,11 +921,10 @@ class HyenaDNAModel(nn.Module):
 class ConcatPairHead(nn.Module):
     def __init__(self, input_size, hidden_size, dropout_prob=0.5):
         super().__init__()
-        self.fc_out = nn.Linear(13370 * 2 * hidden_size, 1)
+        self.fc_out = nn.Linear(13370 * 2, 1)
         self.dropout = nn.Dropout(dropout_prob)
         self.flatten = nn.Flatten()
-        print(f"inp size: {input_size}, hidden_size: {hidden_size}")
-        
+        self.conv1d = nn.Conv1d(hidden_size, hidden_size, kernel_size=3, padding=1)
         
     def forward(self, hidden_states_seq1, hidden_states_seq2):
         pair_hidden_states = []
@@ -933,15 +932,28 @@ class ConcatPairHead(nn.Module):
             pair_hidden_states.append(torch.cat((hidden_state1, hidden_state2), dim=0))
 
         pair_hidden_states = torch.stack(pair_hidden_states)
-        print(f"seq pair size: {pair_hidden_states.shape}")
-       
-        x = self.flatten(pair_hidden_states)
+        
+        #permute so hidden_size becomes the channel dimension
+        pair_hidden_states = pair_hidden_states.permute(0, 2, 1)
+        
+        print(pair_hidden_states.shape)
+        x = self.conv1d(pair_hidden_states)
+        print(f"x after conv1: {x.shape}")
+        
+        x = torch.mean(x, dim=1)
+        print(f"x after avg: {x.shape}")
+        
+        x = self.flatten(x)
         print(f"x after flatten: {x.shape}")
+        
         x = F.leaky_relu(self.fc_out(x))
         print(f"x after layer fc_out: {x.shape}")
+        
         x = self.dropout(x)
         output = x.squeeze()
         print(f"output shape: {output.shape}")
+        
+        print(pair_hidden_states.shape)
         
         return output
 
