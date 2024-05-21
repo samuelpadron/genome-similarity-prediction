@@ -65,7 +65,7 @@ def test(model, device, test_loader, loss_fn, enable_print, job_id):
 def run_train(job_id, batch_size, learning_rate, weight_decay):
     # experiment settings:
     num_epochs = 100  # ~100 seems fine
-    max_length = 500  # max len of sequence of dataset (of what you want) ~ should experiment with this
+    max_length = 13370  # max len of sequence of dataset (of what you want) ~ should experiment with this
     use_padding = 'max_length'
     
     print(f"num_epochs: {num_epochs}")
@@ -77,7 +77,7 @@ def run_train(job_id, batch_size, learning_rate, weight_decay):
     add_eos = False  # add end of sentence token
 
     # for fine-tuning, only the 'tiny' model can fit on colab
-    pretrained_model_name = 'hyenadna-tiny-1k-seqlen'  # use None if training from scratch
+    pretrained_model_name = 'hyenadna-small-32k-seqlen'  # use None if training from scratch
 
     # you can override with your own backbone config here if you want,
     # otherwise we'll load the HF one by default
@@ -90,7 +90,7 @@ def run_train(job_id, batch_size, learning_rate, weight_decay):
     model = huggingface.HyenaDNAPreTrainedModel.from_pretrained(
         '/scratch/spadronalcala',
         pretrained_model_name,
-        download=True,
+        download=False,
         config=backbone_cfg,
         device=device
     )
@@ -103,7 +103,7 @@ def run_train(job_id, batch_size, learning_rate, weight_decay):
         padding_side='left', # since HyenaDNA is causal, we pad on the left
     )
 
-    dataset = DatasetSplitter(0.7, '/vol/csedu-nobackup/project/spadronalcala/pair_alignment/500')
+    dataset = DatasetSplitter(0.7, '/vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6_1024_13370')
     train_data, test_data = dataset.data
 
     ds_train = SequencePairSimilarityDataset(

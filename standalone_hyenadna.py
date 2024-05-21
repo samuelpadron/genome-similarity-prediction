@@ -921,40 +921,34 @@ class HyenaDNAModel(nn.Module):
 class ConcatPairHead(nn.Module):
     def __init__(self, input_size, hidden_size, dropout_prob=0.5):
         super().__init__()
-        self.fc_out = nn.Linear(13370 * 2, 1)
+        self.fc1 = nn.Linear(hidden_size * 4, hidden_size)
+        self.fc_out = nn.Linear(hidden_size,1)
         self.dropout = nn.Dropout(dropout_prob)
         self.flatten = nn.Flatten()
         self.conv1d = nn.Conv1d(hidden_size, hidden_size, kernel_size=3, padding=1)
-        
-    def forward(self, hidden_states_seq1, hidden_states_seq2):
-        pair_hidden_states = []
-        for hidden_state1, hidden_state2 in zip (hidden_states_seq1, hidden_states_seq2):
-            pair_hidden_states.append(torch.cat((hidden_state1, hidden_state2), dim=0))
 
-        pair_hidden_states = torch.stack(pair_hidden_states)
+    def forward(self, hidden_states_seq1, hidden_states_seq2):
         
-        #permute so hidden_size becomes the channel dimension
-        pair_hidden_states = pair_hidden_states.permute(0, 2, 1)
+        seq1 = self.conv1d(hidden_states_seq1.permute(0, 2, 1))
+        seq2 = self.conv1d(hidden_states_seq2.permute(0, 2, 1))
+
+        seq1 = torch.mean(seq1, dim=2)
+        seq2 = torch.mean(seq2, dim=2)
         
-        print(pair_hidden_states.shape)
-        x = self.conv1d(pair_hidden_states)
-        print(f"x after conv1: {x.shape}")
-        
-        x = torch.mean(x, dim=1)
-        print(f"x after avg: {x.shape}")
-        
-        x = self.flatten(x)
-        print(f"x after flatten: {x.shape}")
+        abs_diff = torch.abs(seq1 - seq2)
+        element_wise_product = seq1 * seq2
+
+        # Concatenate all features
+        x = torch.cat((seq1, seq2, abs_diff, element_wise_product), dim=1)
+
+        x = F.leaky_relu(self.fc1(x))
+        x = self.dropout(x)
         
         x = F.leaky_relu(self.fc_out(x))
-        print(f"x after layer fc_out: {x.shape}")
-        
         x = self.dropout(x)
+        
         output = x.squeeze()
-        print(f"output shape: {output.shape}")
-        
-        print(pair_hidden_states.shape)
-        
+
         return output
 
 

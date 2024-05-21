@@ -15,10 +15,9 @@ project_dir=.
 job_id=$SLURM_JOB_ID
 
 # optimization hyperparameters
-batch_size=64
+batch_size=16
 learning_rate=6e-4
 weight_decay=0.001
 
 source "$project_dir"/venv/bin/activate
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 python -m my_train "$job_id" $batch_size $learning_rate $weight_decay

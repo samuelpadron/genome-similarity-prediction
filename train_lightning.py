@@ -48,7 +48,7 @@ class HyenaDNAModule(pl.LightningModule):
     
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
-            filter(lambda p: p.requires_grad, self.model.parameters()), 
+            self.model.parameters(), 
             lr=self.learning_rate, 
             weight_decay=self.weight_decay,
         )
@@ -135,7 +135,9 @@ if __name__ == "__main__":
     trainer = pl.Trainer(
         max_epochs=num_epochs,
         accelerator='gpu',
-        devices=-1,  
+        devices=-1,
+        accumulate_grad_batches = 5,
+        precision=16,
         strategy='ddp',  
         log_every_n_steps=1000000
     )
