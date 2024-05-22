@@ -14,4 +14,4 @@ project_dir=.
 
 source "$project_dir"/venv/bin/activate
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-python -m test_model galGal6_1024_13370 galGal6_evaluation_13370.txt
+python -m test_model galGal6_1024_13370 galGal6_evaluation_13370_3.txt

@@ -1,8 +1,8 @@
 #!/bin/bash -e
 #SBATCH --account=cseduproject
 #SBATCH --partition=csedu
-#SBATCH --gres=gpu:2
-#SBATCH --qos=csedu-normal
+#SBATCH --gres=gpu:5
+#SBATCH --qos=csedu-large
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 #SBATCH --time=8:00:00

@@ -29,7 +29,7 @@ class HyenaDNAModule(pl.LightningModule):
         seq1, seq2, target = batch
         output = self(seq1, seq2)
         loss = self.loss_fn(output, target.float())
-        self.log("train_loss", loss, prog_bar=True)
+        self.log("train_loss", loss, prog_bar=True, on_step=True)
         
         return loss
     
@@ -54,6 +54,14 @@ class HyenaDNAModule(pl.LightningModule):
         )
         
         return optimizer
+    
+    checkpoint_callback = ModelCheckpoint(
+    monitor='accuracy',
+    dirpath='',
+    filename='',
+    save_top_k=1,
+    mode='max'
+    )
 
 class HyenaDNADataModule(pl.LightningDataModule):
     def __init__(self, data_path, tokenizer, batch_size, max_length, use_padding, add_eos):
@@ -138,8 +146,7 @@ if __name__ == "__main__":
         devices=-1,
         accumulate_grad_batches = 5,
         precision=16,
-        strategy='ddp',  
-        log_every_n_steps=1000000
+        strategy='ddp'
     )
     
     trainer.fit(module, datamodule=data_module)
