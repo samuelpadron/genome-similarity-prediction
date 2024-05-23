@@ -929,26 +929,33 @@ class ConcatPairHead(nn.Module):
 
     def forward(self, hidden_states_seq1, hidden_states_seq2):
         
+        # [B, 13370, 256]
         seq1 = self.conv1d(hidden_states_seq1.permute(0, 2, 1))
         seq2 = self.conv1d(hidden_states_seq2.permute(0, 2, 1))
-
+        
+        # [B, 256, 13370]
         seq1 = torch.mean(seq1, dim=2)
         seq2 = torch.mean(seq2, dim=2)
         
+        # [B,  256, 1]
         abs_diff = torch.abs(seq1 - seq2)
         element_wise_product = seq1 * seq2
 
-        # Concatenate all features
+        # Concatenate all features on hidden_size dimension
         x = torch.cat((seq1, seq2, abs_diff, element_wise_product), dim=1)
 
+        # [B, 256 * 4]
         x = F.leaky_relu(self.fc1(x))
         x = self.dropout(x)
         
+        # [B, 256]
         x = F.leaky_relu(self.fc_out(x))
         x = self.dropout(x)
         
+        # [B, 1]
         output = x.squeeze()
-
+        
+        # [B]
         return output
 
 
