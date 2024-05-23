@@ -5,7 +5,7 @@ scikit-learn
 matplotlib
 tqdm
 rich
-pytorch-lightning==1.8.6
+pytorch-lightning
 hydra-core
 omegaconf
 wandb
@@ -19,15 +19,7 @@ timm
 prettytable
 numerize
 git-lfs
-flash_attn
 
 # Dataset specific packages
 torchtext==0.14.0 # this needs to align with the pytorch version
 datasets # LRA
-
-# genomic specific
-pyfaidx
-polars
-genomic-benchmarks
-loguru
-liftover

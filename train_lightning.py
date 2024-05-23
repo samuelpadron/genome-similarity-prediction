@@ -3,7 +3,7 @@ import torch
 import huggingface
 import standalone_hyenadna
 from torch.utils.data import DataLoader
-from dataset_splitter import DatasetSplitter
+from utils.dataset_splitter import DatasetSplitter
 from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilarityDataset
 import os
 import sys
