@@ -55,13 +55,6 @@ class HyenaDNAModule(pl.LightningModule):
         
         return optimizer
     
-    checkpoint_callback = ModelCheckpoint(
-    monitor='accuracy',
-    dirpath='',
-    filename='',
-    save_top_k=1,
-    mode='max'
-    )
 
 class HyenaDNADataModule(pl.LightningDataModule):
     def __init__(self, data_path, tokenizer, batch_size, max_length, use_padding, add_eos):
@@ -150,7 +143,3 @@ if __name__ == "__main__":
     )
     
     trainer.fit(module, datamodule=data_module)
-    
-    save_path = os.path.join(os.getcwd(), f"model_{job_id}.pth")
-    torch.save(module.state_dict(), save_path)
-    print("Model trained and saved successfully.")

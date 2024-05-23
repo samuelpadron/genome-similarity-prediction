@@ -1,3 +1,0 @@
-
-Test set: Average loss: 0.0016, Accuracy: 1954/2000 (97.70%)
-
