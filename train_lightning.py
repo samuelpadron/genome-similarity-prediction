@@ -139,7 +139,7 @@ if __name__ == "__main__":
         devices=-1,
         accumulate_grad_batches = 5,
         precision=16,
-        strategy='ddp'
+        strategy='ddp',
     )
     
     trainer.fit(module, datamodule=data_module)
