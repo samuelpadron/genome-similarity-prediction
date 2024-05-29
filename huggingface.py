@@ -21,7 +21,7 @@ import torch
 from transformers import PreTrainedModel
 import re
 from standalone_hyenadna import HyenaDNAModel
-from standalone_hyenadna import CustomHyenaDNAModel
+from standalone_hyenadna import SeqPairPredictionModel
 from standalone_hyenadna import CharacterTokenizer
 
 
@@ -108,7 +108,7 @@ class HyenaDNAPreTrainedModel(PreTrainedModel):
                 config = json.load(open(os.path.join(pretrained_model_name_or_path, 'config.json')))
 
         if custom:
-            scratch_model = CustomHyenaDNAModel(**config, use_head=use_head, n_classes=n_classes)  # the new model format
+            scratch_model = SeqPairPredictionModel(**config, use_head=use_head, n_classes=n_classes)  # the new model format
         else:
             scratch_model = HyenaDNAModel(**config, use_head=use_head, n_classes=n_classes)  # the new model format
             

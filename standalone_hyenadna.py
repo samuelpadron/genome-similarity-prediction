@@ -918,14 +918,13 @@ class HyenaDNAModel(nn.Module):
             return hidden_states
         
         
-class ConcatPairHead(nn.Module):
+class PredictionHead(nn.Module):
     def __init__(self, input_size, hidden_size, dropout_prob=0.5):
         super().__init__()
         self.fc1 = nn.Linear(hidden_size * 4, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.fc_out = nn.Linear(hidden_size,1)
         self.dropout = nn.Dropout(dropout_prob)
-        self.flatten = nn.Flatten()
         self.conv1d = nn.Conv1d(hidden_size, hidden_size, kernel_size=3, padding=1)
 
     def forward(self, hidden_states_seq1, hidden_states_seq2):
@@ -964,7 +963,7 @@ class ConcatPairHead(nn.Module):
 
 
 
-class CustomHyenaDNAModel(nn.Module):
+class SeqPairPredictionModel(nn.Module):
 
     def __init__(self, d_model: int, n_layer: int, d_inner: int, vocab_size: int,
                  layer=None, attn_layer_idx=None, attn_cfg=None, max_position_embeddings=0,
@@ -996,7 +995,7 @@ class CustomHyenaDNAModel(nn.Module):
         for param in self.backbone.parameters():
             param.requires_grad = False
          
-        self.head = ConcatPairHead(input_size=d_model, hidden_size=d_model)
+        self.head = PredictionHead(input_size=d_model, hidden_size=d_model)
     
 
     def forward(self, seq1, seq2, position_ids=None, state=None): # state for the repo interface

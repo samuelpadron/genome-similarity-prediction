@@ -13,4 +13,4 @@
 project_dir=.
 
 source "$project_dir"/venv/bin/activate
-python -m test_model lightning_logs/version_4477761/checkpoints/epoch=99-step=1200.ckpt /vol/csedu-nobackup/project/spadronalcala/pair_alignment/panTro6
+python -m test_model lightning_logs/version_4495123/checkpoints/epoch=99-step=1200.ckpt /vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6_1024_13370
