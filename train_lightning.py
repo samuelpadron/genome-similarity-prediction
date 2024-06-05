@@ -1,4 +1,5 @@
 import pytorch_lightning as pl
+from pytorch_lightning.loggers import TensorBoardLogger
 import torch
 import huggingface
 import standalone_hyenadna
@@ -29,10 +30,10 @@ class HyenaDNAModule(pl.LightningModule):
         seq1, seq2, target = batch
         output = self(seq1, seq2)
         loss = self.loss_fn(output, target.float())
-        self.log("train_loss", loss, prog_bar=True, on_step=True)
+        self.log('train_loss', loss, on_step=False, on_epoch=True)
         
         return loss
-    
+
     def validation_step(self, batch, batch_idx):
         seq1, seq2, target = batch
         output = self(seq1, seq2)
@@ -41,11 +42,11 @@ class HyenaDNAModule(pl.LightningModule):
         pred = (probs > 0.5).long()
         correct = pred.eq(target.view_as(pred)).sum().item()
         accuracy = correct / len(target)
-        self.log("val_loss", loss, prog_bar=True)
-        self.log("accuracy", accuracy, prog_bar=True)
+        self.log("val_loss", loss, on_step=False, on_epoch=True)
+        self.log("accuracy", accuracy, on_step=False, on_epoch=True)
         
-        return {"loss": loss, "accuracy": accuracy}
-    
+        return {"val_loss": loss, "accuracy": accuracy}
+        
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
             self.model.parameters(), 
@@ -133,13 +134,17 @@ if __name__ == "__main__":
         add_eos=add_eos,
     )
     
+    logger = TensorBoardLogger("lightning_logs", name=f"version_{job_id}")
+    print(logger.save_dir)
+    
     trainer = pl.Trainer(
         max_epochs=num_epochs,
+        logger=logger,
         accelerator='gpu',
         devices=-1,
         accumulate_grad_batches = 5,
         precision=16,
-        strategy='ddp',
+        strategy='ddp'
     )
     
     trainer.fit(module, datamodule=data_module)
