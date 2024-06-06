@@ -13,6 +13,7 @@ Original file is located at
 
 #@title Imports
 # for HyenaDNA specifically
+import inspect
 import torch
 import math
 import torch
@@ -919,7 +920,7 @@ class HyenaDNAModel(nn.Module):
         
         
 class PredictionHead(nn.Module):
-    def __init__(self, input_size, hidden_size, dropout_prob=0.5):
+    def __init__(self, input_size, hidden_size, dropout_prob=0.2):
         super().__init__()
         self.fc1 = nn.Linear(hidden_size * 4, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
@@ -930,11 +931,11 @@ class PredictionHead(nn.Module):
     def forward(self, hidden_states_seq1, hidden_states_seq2):
         
         # [B, 13370, 256]
-        seq1 = self.conv1d(hidden_states_seq1.permute(0, 2, 1))
+        seq1 = self.conv1d(hidden_states_seq1.permute(0, 2, 1))     
         seq2 = self.conv1d(hidden_states_seq2.permute(0, 2, 1))
         
         # [B, 256, 13370]
-        seq1 = torch.mean(seq1, dim=2)
+        seq1 = torch.mean(seq1, dim=2)     
         seq2 = torch.mean(seq2, dim=2)
         
         # [B,  256, 1]
@@ -947,17 +948,17 @@ class PredictionHead(nn.Module):
         # [B, 256 * 4]
         x = F.leaky_relu(self.fc1(x))
         x = self.dropout(x)
-        
+
         x = F.leaky_relu(self.fc2(x))
         x = self.dropout(x)
-        
+    
         # [B, 256]
         x = F.leaky_relu(self.fc_out(x))
         x = self.dropout(x)
-        
+   
         # [B, 1]
         output = x.squeeze()
-        
+
         # [B]
         return output
 

@@ -34,7 +34,7 @@ class HyenaDNAModule(pl.LightningModule):
         pred = (probs > 0.5).long()
         correct = pred.eq(target.view_as(pred)).sum().item()
         accuracy = correct / len(target)
-        self.log("val_loss", loss, prog_bar=True)
+        self.log("loss", loss, prog_bar=True)
         self.log("accuracy", accuracy, prog_bar=True)
         
         return {"loss": loss, "accuracy": accuracy}
