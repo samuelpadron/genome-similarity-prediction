@@ -28,6 +28,7 @@ class HyenaDNAModule(pl.LightningModule):
     
     def training_step(self, batch, batch_idx):
         seq1, seq2, target = batch
+        print(f"pair score: {target}")
         output = self(seq1, seq2)
         loss = self.loss_fn(output, target.float())
         self.log('train_loss', loss, on_step=False, on_epoch=True)

@@ -25,7 +25,9 @@ class SequencePairSimilarityDataset(torch.utils.data.Dataset):
     seq_pair = self.data.iloc[idx]
     seq1 = seq_pair['sequence_1']
     seq2 = seq_pair['sequence_2']
-    label = seq_pair['label']
+    largest_length = len(seq1) if len(seq1) > len(seq2) else len(seq2)
+    label = seq_pair['blastz_score'] / largest_length
+    print(f"seq1: {seq1}, length: {largest_length}, blastz score: {label}")
 
     seq1 = self.tokenizer(seq1,
             add_special_tokens=False,
@@ -52,14 +54,6 @@ class SequencePairSimilarityDataset(torch.utils.data.Dataset):
     seq1 = torch.LongTensor(seq1)
     seq2 = torch.LongTensor(seq2)
     
-    ##FOR PYTORCH LIGHTNING:
-    
-    # seq_pair = torch.cat((seq1.unsqueeze(1), seq2.unsqueeze(1)), dim=1)
-
-    # seq_pair = seq_pair.view(seq_pair.size(0), -1)
-
     label = torch.tensor(label).float()
     
-    #get label to match the output shape of model [batch_size, max_seq_size, 128]
-    
-    return seq1, seq2, label  #label: 1 ~ true, 0 ~ false
+    return seq1, seq2, label 

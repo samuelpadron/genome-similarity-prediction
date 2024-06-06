@@ -10,24 +10,13 @@ class DatasetSplitter:
 
   def set_split(self, split_ratio, data: pd.DataFrame):
 
-    label_true = data[data['label'] == 1]
-    label_false = data[data['label'] == 0]
-
     # shuffle since first half of the dataset is all true and the second half all false
-    train_label_true, test_label_true = train_test_split(label_true, train_size=split_ratio, shuffle=True)
-    train_label_false, test_label_false = train_test_split(label_false, train_size=split_ratio, shuffle=True)
-
-    train_data = pd.concat([train_label_true, train_label_false])
-
-    test_data = pd.concat([test_label_true, test_label_false])
-
+    train_data,test_data = train_test_split(data, train_size=split_ratio, shuffle=True)
+    
     return train_data, test_data
 
 
   def setup_data(self):
-      data_true = pd.read_csv(self.data_path + '_true.csv').drop(['blastz_score'], axis=1) #not needed for now
-      data_true['label'] = 1
-      data_false = pd.read_csv(self.data_path + '_false.csv')
-      data_false['label'] = 0
+      data = pd.read_csv(self.data_path + '_true.csv') #not needed for now
 
-      return pd.concat([data_true, data_false])
+      return data
