@@ -16,7 +16,7 @@ job_id=$SLURM_JOB_ID
 # optimization hyperparameters
 batch_size=16
 learning_rate=6e-4
-weight_decay=0.001
+weight_decay=0.1
 
 source "$project_dir"/venv/bin/activate
 python -m train_lightning "$job_id" $batch_size $learning_rate $weight_decay
