@@ -27,7 +27,6 @@ class SequencePairSimilarityDataset(torch.utils.data.Dataset):
     seq2 = seq_pair['sequence_2']
     largest_length = len(seq1) if len(seq1) > len(seq2) else len(seq2)
     label = seq_pair['blastz_score'] / largest_length
-    print(f"seq1: {seq1}, length: {largest_length}, blastz score: {label}")
 
     seq1 = self.tokenizer(seq1,
             add_special_tokens=False,

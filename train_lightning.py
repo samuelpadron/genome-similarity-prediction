@@ -30,7 +30,8 @@ class HyenaDNAModule(pl.LightningModule):
         seq1, seq2, target = batch
         print(f"pair score: {target}")
         output = self(seq1, seq2)
-        loss = self.loss_fn(output, target.float())
+        print(f"output: {output}")
+        loss = self.loss_fn(output, target)
         self.log('train_loss', loss, on_step=False, on_epoch=True)
         
         return loss
@@ -38,15 +39,10 @@ class HyenaDNAModule(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         seq1, seq2, target = batch
         output = self(seq1, seq2)
-        loss = self.loss_fn(output, target.float())
-        probs = torch.sigmoid(output)
-        pred = (probs > 0.5).long()
-        correct = pred.eq(target.view_as(pred)).sum().item()
-        accuracy = correct / len(target)
+        loss = self.loss_fn(output, target)
         self.log("val_loss", loss, on_step=False, on_epoch=True)
-        self.log("accuracy", accuracy, on_step=False, on_epoch=True)
         
-        return {"val_loss": loss, "accuracy": accuracy}
+        return loss
         
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
@@ -107,7 +103,7 @@ if __name__ == "__main__":
     add_eos = False
     
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    loss_fn = torch.nn.BCEWithLogitsLoss()
+    loss_fn = torch.nn.MSELoss()
     backbone_cfg = None 
     
     module = HyenaDNAModule(
