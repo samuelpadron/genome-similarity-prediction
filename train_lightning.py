@@ -62,10 +62,10 @@ class HyenaDNAModule(pl.LightningModule):
         predictions = torch.cat(self.validation_predictions).numpy()
         targets = torch.cat(self.validation_targets).numpy()
         
-        confusion_matrix = confusion_matrix(targets, predictions)
+        cm = confusion_matrix(targets, predictions)
         
         fig = plt.figure(figsize=(10, 7))
-        sns.heatmap(confusion_matrix, annot=True, fmt='d', cmap='coolwarm')
+        sns.heatmap(cm, annot=True, fmt='d', cmap='coolwarm')
         plt.xlabel('Predicted label')
         plt.ylabel('Actual label')
         
@@ -123,6 +123,7 @@ if __name__ == "__main__":
     batch_size = int(sys.argv[2]) if len(sys.argv) > 2 else 128
     learning_rate = float(sys.argv[3]) if len(sys.argv) > 3 else 6e-4
     weight_decay = float(sys.argv[4]) if len(sys.argv) > 4 else 0.1
+    data_path = sys.argv[5]
     
     num_epochs = 100
     max_length = 32000
@@ -151,7 +152,7 @@ if __name__ == "__main__":
     )
     
     data_module = HyenaDNADataModule(
-        data_path='/vol/csedu-nobackup/project/spadronalcala/pair_alignment/panTro6',
+        data_path=data_path,
         tokenizer=tokenizer,
         batch_size=batch_size,
         max_length=max_length,
