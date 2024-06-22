@@ -6,7 +6,6 @@ matplotlib
 tqdm
 rich
 pytorch-lightning
-hydra-core
 omegaconf
 wandb
 einops
@@ -19,6 +18,7 @@ timm
 prettytable
 numerize
 git-lfs
+seaborn
 
 # Dataset specific packages
 torchtext==0.14.0 # this needs to align with the pytorch version
