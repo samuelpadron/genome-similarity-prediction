@@ -125,6 +125,8 @@ if __name__ == "__main__":
     weight_decay = float(sys.argv[4]) if len(sys.argv) > 4 else 0.1
     data_path = sys.argv[5]
     
+    print(f"training on: {data_path}")
+    
     num_epochs = 100
     max_length = 32000
     use_padding = 'max_length'
