@@ -71,6 +71,8 @@ class HyenaDNAModule(pl.LightningModule):
         
         self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
         
+        self.validation_predictions.clear()
+        self.validation_targets.clear()
         
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(

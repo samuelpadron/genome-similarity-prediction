@@ -1,11 +1,15 @@
-import pytorch_lightning as pl
-import pandas as pd
+import sys
 import torch
 import huggingface
 import standalone_hyenadna
+import pytorch_lightning as pl
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 from torch.utils.data import DataLoader
+from pytorch_lightning.loggers import TensorBoardLogger
 from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilarityDataset
-import sys
+from sklearn.metrics import confusion_matrix
 
 class HyenaDNAModule(pl.LightningModule):
     def __init__(self, pretrained_model_name, backbone_cfg, loss_fn, learning_rate, weight_decay, device):
@@ -22,6 +26,8 @@ class HyenaDNAModule(pl.LightningModule):
         self.loss_fn = loss_fn
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
+        self.test_predictions = []
+        self.test_targets = []
     
     def forward(self, seq1, seq2):
         return self.model(seq1, seq2)
@@ -38,7 +44,23 @@ class HyenaDNAModule(pl.LightningModule):
         self.log("accuracy", accuracy, prog_bar=True)
         
         return {"loss": loss, "accuracy": accuracy}
+    
+    def on_test_epoch_end(self):
+        predictions = torch.cat(self.test_predictions).numpy()
+        targets = torch.cat(self.test_targets).numpy()
+        
+        cm = confusion_matrix(targets, predictions)
+        
+        fig = plt.figure(figsize=(10, 7))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='coolwarm')
+        plt.xlabel('Predicted label')
+        plt.ylabel('Actual label')
+        
+        self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
 
+        self.test_predictions.clear()
+        self.test_targets.clear()
+        
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
             self.model.parameters(), 
@@ -67,20 +89,23 @@ def setup_new_dataset(data_path, tokenizer, batch_size, max_length, use_padding,
     return DataLoader(ds_new, batch_size=batch_size, shuffle=False)
 
 if __name__ == "__main__":
-    checkpoint_path = sys.argv[1]
-    new_data_path = sys.argv[2]
-    batch_size = int(sys.argv[3]) if len(sys.argv) > 3 else 16
-    learning_rate = float(sys.argv[4]) if len(sys.argv) > 4 else 6e-4
-    weight_decay = float(sys.argv[5]) if len(sys.argv) > 5 else 0.1
+    job_id = sys.argv[1]
+    checkpoint_path = sys.argv[2]
+    new_data_path = sys.argv[3]
+    batch_size = int(sys.argv[4]) if len(sys.argv) > 4 else 8
+    learning_rate = float(sys.argv[5]) if len(sys.argv) > 5 else 6e-4
+    weight_decay = float(sys.argv[6]) if len(sys.argv) > 6 else 0.1
     
     pretrained_model_name = 'hyenadna-small-32k-seqlen'
-    max_length = 13370
+    max_length = 32000
     use_padding = 'max_length'
     add_eos = False
     
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     loss_fn = torch.nn.BCEWithLogitsLoss()
     backbone_cfg = None
+    
+    print(f"Testing on {new_data_path}")
     
     tokenizer = standalone_hyenadna.CharacterTokenizer(
         characters=['A', 'C', 'T', 'G', 'N'],
@@ -118,6 +143,8 @@ if __name__ == "__main__":
         device=device)
     
     new_dataloader = setup_new_dataset(new_data_path, tokenizer, batch_size, max_length, use_padding, add_eos)
+    
+    logger = TensorBoardLogger("lightning_logs", name=f"version_{job_id}")
     
     trainer = pl.Trainer(accelerator='gpu', devices=1, precision=16)
     

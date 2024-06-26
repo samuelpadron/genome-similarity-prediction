@@ -5,7 +5,7 @@
 #SBATCH --qos=csedu-large
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=16G
-#SBATCH --time=48:00:00
+#SBATCH --time=20:00:00
 #SBATCH --mail-user=samuel.padronalcala@ru.nl
 #SBATCH --output=%j.out
 #SBATCH --error=%j.errs
