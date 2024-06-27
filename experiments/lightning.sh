@@ -14,7 +14,7 @@ project_dir=.
 job_id=$SLURM_JOB_ID
 
 # optimization hyperparameters
-batch_size=16
+batch_size=8
 learning_rate=6e-4
 weight_decay=0.1
 

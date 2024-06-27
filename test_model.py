@@ -1,11 +1,12 @@
+import sys
+import torch
+import standalone_hyenadna
+import huggingface
 import pytorch_lightning as pl
 import pandas as pd
-import torch
-import huggingface
-import standalone_hyenadna
 from torch.utils.data import DataLoader
 from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilarityDataset
-import sys
+from sklearn.metrics import r2_score
 
 class HyenaDNAModule(pl.LightningModule):
     def __init__(self, pretrained_model_name, backbone_cfg, loss_fn, learning_rate, weight_decay, device):
@@ -74,7 +75,7 @@ if __name__ == "__main__":
     weight_decay = float(sys.argv[5]) if len(sys.argv) > 5 else 0.1
     
     pretrained_model_name = 'hyenadna-small-32k-seqlen'
-    max_length = 13370
+    max_length = 32000
     use_padding = 'max_length'
     add_eos = False
     

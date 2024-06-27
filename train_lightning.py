@@ -98,7 +98,7 @@ if __name__ == "__main__":
     num_epochs = 100
     
     pretrained_model_name = 'hyenadna-small-32k-seqlen'
-    max_length = 13370
+    max_length = 32000
     use_padding = 'max_length'
     add_eos = False
     
