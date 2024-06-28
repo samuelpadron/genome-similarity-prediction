@@ -14,4 +14,4 @@ project_dir=.
 job_id=$SLURM_JOB_ID
 
 source "$project_dir"/venv/bin/activate
-python -m test_model "$job_id" lightning_logs/version_4852918/version_0/checkpoints/epoch=99-step=56000.ckpt /vol/csedu-nobackup/project/spadronalcala/pair_alignment/danRer10
+python -m test_model "$job_id" lightning_logs/version_4854615/version_0/checkpoints/epoch=99-step=56000.ckpt /vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6

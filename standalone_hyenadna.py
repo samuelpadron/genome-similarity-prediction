@@ -248,7 +248,7 @@ class HyenaOperator(nn.Module):
         super().__init__()
 
         self.d_model = d_model
-        self.l_max = 32000 #hard code otherwise gets set to 1026 not sure why
+        self.l_max = 5000 #hard code otherwise gets set to 1026 not sure why
         self.order = order
         inner_width = d_model * (order + 1)
         self.dropout = nn.Dropout(dropout)

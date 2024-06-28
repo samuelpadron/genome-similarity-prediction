@@ -3,8 +3,8 @@ import csv
 from tqdm import tqdm
 
 def parse_maf(maf_file, output_csv):
-    max_length = 13370
-    max_sequences = 50000
+    max_length = 5000
+    max_sequences = 16000
     
     with open(maf_file, 'r') as file_in, open(output_csv, 'w', newline='') as file_out:
         writer = csv.writer(file_out)
@@ -19,7 +19,7 @@ def parse_maf(maf_file, output_csv):
             if line.startswith('a'):
                 blastz_score = float(line.strip().split()[1].split('=')[1])
             elif line.startswith('s'):
-                sequences.append(line.strip().split()[-1])
+                sequences.append(line.strip().split()[-1].replace('-', ''))
 
                 if len(sequences) == 2:
                     sequence_1, sequence_2 = sequences
@@ -32,7 +32,7 @@ def parse_maf(maf_file, output_csv):
                         sequence_1 = sequence_1[max_length:]
                         sequence_2 = sequence_2[max_length:]
                     
-                    if pair_id < max_sequences:
+                    if pair_id <= max_sequences:
                         writer.writerow([f'pair_true_{pair_id}', blastz_score, sequence_1, sequence_2])
                         sequences = []
                         pair_id += 1

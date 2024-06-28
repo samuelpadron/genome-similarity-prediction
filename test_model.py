@@ -38,28 +38,34 @@ class HyenaDNAModule(pl.LightningModule):
         loss = self.loss_fn(output, target.float())
         probs = torch.sigmoid(output)
         pred = (probs > 0.5).long()
+        self.test_predictions.append(pred.cpu())
+        self.test_targets.append(target.cpu())
+        
         correct = pred.eq(target.view_as(pred)).sum().item()
         accuracy = correct / len(target)
-        self.log("loss", loss, prog_bar=True)
-        self.log("accuracy", accuracy, prog_bar=True)
+        self.log("test_loss", loss, on_epoch=True, prog_bar=True)
+        self.log("test_accuracy", accuracy, on_epoch=True, prog_bar=True)
         
-        return {"loss": loss, "accuracy": accuracy}
+        return {"test_loss": loss, "test_accuracy": accuracy}
     
     def on_test_epoch_end(self):
-        predictions = torch.cat(self.test_predictions).numpy()
-        targets = torch.cat(self.test_targets).numpy()
-        
-        cm = confusion_matrix(targets, predictions)
-        
-        fig = plt.figure(figsize=(10, 7))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='coolwarm')
-        plt.xlabel('Predicted label')
-        plt.ylabel('Actual label')
-        
-        self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
-
-        self.test_predictions.clear()
-        self.test_targets.clear()
+        if self.test_predictions and self.test_targets:
+            predictions = torch.cat(self.test_predictions).numpy()
+            targets = torch.cat(self.test_targets).numpy()
+            
+            cm = confusion_matrix(targets, predictions)
+            
+            fig = plt.figure(figsize=(10, 7))
+            sns.heatmap(cm, annot=True, fmt='d', cmap='coolwarm')
+            plt.xlabel('Predicted label')
+            plt.ylabel('Actual label')
+            
+            self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
+            
+            self.test_predictions.clear()
+            self.test_targets.clear()
+        else:
+            print("No predictions to evaluate.")
         
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
