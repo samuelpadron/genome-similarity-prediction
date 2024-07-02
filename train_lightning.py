@@ -10,11 +10,13 @@ from torch.utils.data import DataLoader
 from utils.dataset_splitter import DatasetSplitter
 from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilarityDataset
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
 
 
 class HyenaDNAModule(pl.LightningModule):
     def __init__(self, pretrained_model_name, backbone_cfg, loss_fn, learning_rate, weight_decay, device):
         super().__init__()
+        self.save_hyperparameters()
         self.model = huggingface.HyenaDNAPreTrainedModel.from_pretrained(
             '/scratch/spadronalcala',
             pretrained_model_name,
@@ -27,6 +29,9 @@ class HyenaDNAModule(pl.LightningModule):
         self.weight_decay = weight_decay
         self.validation_predictions = []
         self.validation_targets = []
+        self.validation_losses = []
+        self.test_predictions = []
+        self.test_targets = []
 
         
     # Training
@@ -54,30 +59,40 @@ class HyenaDNAModule(pl.LightningModule):
         pred = (probs > 0.5).long()
         self.validation_predictions.append(pred.cpu())
         self.validation_targets.append(target.cpu())
+        self.validation_losses.append(loss.cpu())
         correct = pred.eq(target.view_as(pred)).sum().item()
         accuracy = correct / len(target)
-        self.log("val_loss", loss, on_step=False, on_epoch=True, sync_dist=True)
-        self.log("val_accuracy", accuracy, on_step=False, on_epoch=True, sync_dist=True)
         
-        return {"val_loss": loss, "val_accuracy": accuracy}
+        return {"val_loss": loss, "n_correct_pred": correct, "n_pred": len(target)}
     
     
     def on_validation_epoch_end(self):
-        predictions = torch.cat(self.validation_predictions).numpy()
-        targets = torch.cat(self.validation_targets).numpy()
-        
-        cm = confusion_matrix(targets, predictions)
-        
-        fig = plt.figure(figsize=(10, 7))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='coolwarm')
-        plt.xlabel('Predicted label')
-        plt.ylabel('Actual label')
-        
-        self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
-        
-        self.validation_predictions.clear()
-        self.validation_targets.clear()
+        if self.validation_predictions and self.validation_targets:
+            # make confusion matrix
+            predictions = torch.cat(self.validation_predictions).numpy()
+            targets = torch.cat(self.validation_targets).numpy()
+            
+            cm = confusion_matrix(targets, predictions)
+            
+            fig = plt.figure(figsize=(10, 7))
+            sns.heatmap(cm, annot=True, fmt='d', cmap='coolwarm')
+            plt.xlabel('Predicted label')
+            plt.ylabel('Actual label')
+            
+            self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
 
+            # accumulate validation step loss and accuracy
+            avg_loss = torch.stack([x for x in self.validation_losses]).mean().item()
+            accuracy = accuracy_score(targets, predictions)
+            
+            self.log("val_loss", avg_loss, on_epoch=True, prog_bar=True)
+            self.log("val_accuracy", accuracy, on_epoch=True, prog_bar=True)
+
+            self.validation_predictions.clear()
+            self.validation_targets.clear()
+            self.validation_losses.clear() 
+        else:
+            print("No predictions to evaluate.")
 
     # Testing        
     def test_step(self, batch, batch_idx):
@@ -229,7 +244,7 @@ if __name__ == "__main__":
     
     trainer.fit(model, datamodule=data_module)
 
-    trainer.test(model, dataloaders=data_module.test_dataloader)
+    trainer.test(model, dataloaders=data_module.test_dataloader())
     
-    logger.finalize()
+    logger.finalize('success')
     

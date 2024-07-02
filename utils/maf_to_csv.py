@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 def parse_maf(maf_file, output_csv):
     max_length = 5000
-    max_sequences = 16000
+    max_sequences = 8000
     
     with open(maf_file, 'r') as file_in, open(output_csv, 'w', newline='') as file_out:
         writer = csv.writer(file_out)
@@ -32,10 +32,13 @@ def parse_maf(maf_file, output_csv):
                         sequence_1 = sequence_1[max_length:]
                         sequence_2 = sequence_2[max_length:]
                     
-                    if pair_id <= max_sequences:
+                    # don't write pairs with no seq2
+                    if pair_id <= max_sequences and len(sequence_2) != 0:
                         writer.writerow([f'pair_true_{pair_id}', blastz_score, sequence_1, sequence_2])
-                        sequences = []
+            
                         pair_id += 1
+                        
+                    sequences = []
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:

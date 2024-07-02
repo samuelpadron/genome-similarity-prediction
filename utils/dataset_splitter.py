@@ -10,7 +10,7 @@ class DatasetSplitter:
         self.val_ratio = val_ratio
         self.test_ratio = test_ratio
         self.data_path = data_path
-        self.train_data, self.val_data, self.test_data = self.set_split(self.train_ratio, self.val_ratio, self.test_ratio, self.setup_data())
+        self.data = self.set_split(self.train_ratio, self.val_ratio, self.test_ratio, self.setup_data())
 
 
     def set_split(self, train_ratio, val_ratio, test_ratio, data: pd.DataFrame):
