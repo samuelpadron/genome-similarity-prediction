@@ -44,7 +44,7 @@ class HyenaDNAModule(pl.LightningModule):
         seq1, seq2, target = batch
         output = self(seq1, seq2)
         loss = self.loss_fn(output, target.float())
-        self.log('train_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log_dict({"train_loss": loss, "step": self.current_epoch})
         
         return loss
     
@@ -60,39 +60,31 @@ class HyenaDNAModule(pl.LightningModule):
         self.validation_predictions.append(pred.cpu())
         self.validation_targets.append(target.cpu())
         self.validation_losses.append(loss.cpu())
-        correct = pred.eq(target.view_as(pred)).sum().item()
-        accuracy = correct / len(target)
-        
-        return {"val_loss": loss, "n_correct_pred": correct, "n_pred": len(target)}
     
     
     def on_validation_epoch_end(self):
-        if self.validation_predictions and self.validation_targets:
-            # make confusion matrix
-            predictions = torch.cat(self.validation_predictions).numpy()
-            targets = torch.cat(self.validation_targets).numpy()
-            
-            cm = confusion_matrix(targets, predictions)
-            
-            fig = plt.figure(figsize=(10, 7))
-            sns.heatmap(cm, annot=True, fmt='d', cmap='coolwarm')
-            plt.xlabel('Predicted label')
-            plt.ylabel('Actual label')
-            
-            self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
+        # make confusion matrix
+        predictions = torch.cat(self.validation_predictions).numpy()
+        targets = torch.cat(self.validation_targets).numpy()
+        
+        cm = confusion_matrix(targets, predictions)
+        
+        fig = plt.figure(figsize=(10, 7))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='coolwarm')
+        plt.xlabel('Predicted label')
+        plt.ylabel('Actual label')
+        
+        self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
 
-            # accumulate validation step loss and accuracy
-            avg_loss = torch.stack([x for x in self.validation_losses]).mean().item()
-            accuracy = accuracy_score(targets, predictions)
-            
-            self.log("val_loss", avg_loss, on_epoch=True, prog_bar=True)
-            self.log("val_accuracy", accuracy, on_epoch=True, prog_bar=True)
+        # accumulate validation step loss and accuracy
+        avg_loss = torch.stack([x for x in self.validation_losses]).mean().item()
+        accuracy = accuracy_score(targets, predictions)
+        
+        self.log_dict({'val_loss': avg_loss, 'val_acc': accuracy, 'step': self.current_epoch})
 
-            self.validation_predictions.clear()
-            self.validation_targets.clear()
-            self.validation_losses.clear() 
-        else:
-            print("No predictions to evaluate.")
+        self.validation_predictions.clear()
+        self.validation_targets.clear()
+        self.validation_losses.clear() 
 
     # Testing        
     def test_step(self, batch, batch_idx):
@@ -112,23 +104,20 @@ class HyenaDNAModule(pl.LightningModule):
         return {"test_loss": loss, "test_accuracy": accuracy}
     
     def on_test_epoch_end(self):
-        if self.test_predictions and self.test_targets:
-            predictions = torch.cat(self.test_predictions).numpy()
-            targets = torch.cat(self.test_targets).numpy()
-            
-            cm = confusion_matrix(targets, predictions)
-            
-            fig = plt.figure(figsize=(10, 7))
-            sns.heatmap(cm, annot=True, fmt='d', cmap='coolwarm')
-            plt.xlabel('Predicted label')
-            plt.ylabel('Actual label')
-            
-            self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
-            
-            self.test_predictions.clear()
-            self.test_targets.clear()
-        else:
-            print("No predictions to evaluate.")
+        predictions = torch.cat(self.test_predictions).numpy()
+        targets = torch.cat(self.test_targets).numpy()
+        
+        cm = confusion_matrix(targets, predictions)
+        
+        fig = plt.figure(figsize=(10, 7))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='coolwarm')
+        plt.xlabel('Predicted label')
+        plt.ylabel('Actual label')
+        
+        self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
+        
+        self.test_predictions.clear()
+        self.test_targets.clear()
         
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
