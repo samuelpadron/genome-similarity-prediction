@@ -6,6 +6,7 @@ matplotlib
 tqdm
 rich
 pytorch-lightning
+lightning
 omegaconf
 wandb
 einops
@@ -19,7 +20,7 @@ prettytable
 numerize
 git-lfs
 seaborn
-
+jsonargparse[signatures]>=4.27.7
 # Dataset specific packages
 torchtext==0.14.0 # this needs to align with the pytorch version
 datasets # LRA
