@@ -11,12 +11,6 @@
 #SBATCH --error=%j.errs
 
 project_dir=.
-job_id=$SLURM_JOB_ID
-
-# optimization hyperparameters
-batch_size=64
-learning_rate=6e-4
-weight_decay=0.001
 
 source "$project_dir"/venv/bin/activate
-python -m train_lightning "$job_id" $batch_size $learning_rate $weight_decay /vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6
+python -m train --model.learning_rate=6e-4 --model.weight_decay=0.001 --model.device=cuda  --model.pretrained_model_name=hyenadna-small-32k-seqlen --data.batch_size=64

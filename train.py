@@ -5,6 +5,9 @@ import standalone_hyenadna
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 import seaborn as sns
+import lightning as L
+from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.cli import LightningCLI
 from pytorch_lightning.loggers import TensorBoardLogger
 from torch.utils.data import DataLoader
 from utils.dataset_splitter import DatasetSplitter
@@ -13,17 +16,18 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 
 
-class HyenaDNAModule(pl.LightningModule):
+class HyenaDNAModule(L.LightningModule):
     def __init__(self, pretrained_model_name, backbone_cfg, loss_fn, learning_rate, weight_decay, device):
         super().__init__()
         self.save_hyperparameters()
         self.model = huggingface.HyenaDNAPreTrainedModel.from_pretrained(
-            '/scratch/spadronalcala',
-            pretrained_model_name,
+            path='/scratch/spadronalcala',
+            model_name=pretrained_model_name,
             download=False,
             config=backbone_cfg,
             device=device,
-        )        
+        )    
+        self.pretrained_model_name= pretrained_model_name    
         self.loss_fn = loss_fn
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
@@ -129,7 +133,7 @@ class HyenaDNAModule(pl.LightningModule):
         return optimizer
     
 
-class HyenaDNADataModule(pl.LightningDataModule):
+class HyenaDNADataModule(L.LightningDataModule):
     def __init__(self, data_path, tokenizer, batch_size, max_length, use_padding, add_eos):
         super().__init__()
         self.data_path = data_path
@@ -177,31 +181,40 @@ class HyenaDNADataModule(pl.LightningDataModule):
         return DataLoader(self.ds_test, batch_size=self.batch_size, shuffle=True)
 
 if __name__ == "__main__":
-    job_id = sys.argv[1]
-    batch_size = int(sys.argv[2]) if len(sys.argv) > 2 else 128
-    learning_rate = float(sys.argv[3]) if len(sys.argv) > 3 else 6e-4
-    weight_decay = float(sys.argv[4]) if len(sys.argv) > 4 else 0.1
-    data_path = sys.argv[5]
-    
-    print(f"training on: {data_path}")
-    
-    num_epochs = 100
+    data_path = "/vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6"
     max_length = 5000
     use_padding = 'max_length'
     add_eos = False
     pretrained_model_name = 'hyenadna-small-32k-seqlen'
-    
+
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     loss_fn = torch.nn.BCEWithLogitsLoss()
     backbone_cfg = None 
     
-    model = HyenaDNAModule(
-        pretrained_model_name,
-        backbone_cfg,
-        loss_fn,
-        learning_rate,
-        weight_decay,
-        device,
+    
+    print(f"training on: {data_path}")
+    
+    logger = TensorBoardLogger("lightning_logs", log_graph=True)
+
+
+    cli = LightningCLI(
+        model_class=HyenaDNAModule,
+        datamodule_class=HyenaDNADataModule,
+        run=False,
+        save_config_callback=None,
+        seed_everything_default=42,
+        trainer_defaults={
+                "max_epochs": 10,
+                "callbacks": [ModelCheckpoint(monitor="val_acc", mode="max")],
+                "accelerator": "gpu"
+        }
+    )
+    cli.instantiate_trainer(
+        logger=logger,
+        accelerator='gpu',
+        devices=-1,
+        precision=16,
+        strategy='ddp'
     )
     
     tokenizer = standalone_hyenadna.CharacterTokenizer(
@@ -211,29 +224,27 @@ if __name__ == "__main__":
         padding_side='left',
     )
     
+    model = HyenaDNAModule(
+        cli.model.pretrained_model_name,
+        backbone_cfg,
+        loss_fn,
+        cli.model.learning_rate,
+        cli.model.weight_decay,
+        cli.model.device,
+    )
+    
     data_module = HyenaDNADataModule(
         data_path=data_path,
         tokenizer=tokenizer,
-        batch_size=batch_size,
+        batch_size=cli.datamodule.batch_size,
         max_length=max_length,
         use_padding=use_padding,
         add_eos=add_eos,
     )
     
-    logger = TensorBoardLogger("lightning_logs", name=f"version_{job_id}", log_graph=True)
-    
-    trainer = pl.Trainer(
-        max_epochs=num_epochs,
-        logger=logger,
-        accelerator='gpu',
-        devices=-1,
-        precision=16,
-        strategy='ddp'
-    )
-    
-    trainer.fit(model, datamodule=data_module)
+    cli.trainer.fit(model, datamodule=data_module)
 
-    trainer.test(model, dataloaders=data_module.test_dataloader())
+    cli.trainer.test(model, dataloaders=data_module.test_dataloader())
     
     logger.finalize('success')
     
