@@ -2,10 +2,11 @@ import sys
 import torch
 import huggingface
 import standalone_hyenadna
-import pytorch_lightning as pl
+import optuna
+import lightning as pl
 import matplotlib.pyplot as plt
 import seaborn as sns
-import lightning as L
+from optuna.integration import PyTorchLightningPruningCallback
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.cli import LightningCLI
 from pytorch_lightning.loggers import TensorBoardLogger
@@ -16,8 +17,8 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 
 
-class HyenaDNAModule(L.LightningModule):
-    def __init__(self, pretrained_model_name, backbone_cfg, loss_fn, learning_rate, weight_decay, device):
+class HyenaDNAModule(pl.LightningModule):
+    def __init__(self, pretrained_model_name, backbone_cfg, loss_fn, learning_rate, weight_decay, dropout, device):
         super().__init__()
         self.save_hyperparameters()
         self.model = huggingface.HyenaDNAPreTrainedModel.from_pretrained(
@@ -25,12 +26,14 @@ class HyenaDNAModule(L.LightningModule):
             model_name=pretrained_model_name,
             download=False,
             config=backbone_cfg,
+            dropout=dropout,
             device=device,
         )    
         self.pretrained_model_name= pretrained_model_name    
         self.loss_fn = loss_fn
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
+        self.training_losses = []
         self.validation_predictions = []
         self.validation_targets = []
         self.validation_losses = []
@@ -48,11 +51,21 @@ class HyenaDNAModule(L.LightningModule):
         seq1, seq2, target = batch
         output = self(seq1, seq2)
         loss = self.loss_fn(output, target.float())
+        
+        self.training_losses.append(loss.cpu())
+        
         self.log_dict({"train_loss": loss, "step": self.current_epoch})
+        
+        # accumulate avg loss over epoch
         
         return loss
     
     
+    def on_train_epoch_end(self):
+        avg_loss = torch.stack(self.training_losses).mean()
+        
+        self.log_dict({"train_loss": avg_loss, "step": self.current_epoch})
+  
     # Validation
 
     def validation_step(self, batch, batch_idx):
@@ -81,7 +94,7 @@ class HyenaDNAModule(L.LightningModule):
         self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
 
         # accumulate validation step loss and accuracy
-        avg_loss = torch.stack([x for x in self.validation_losses]).mean().item()
+        avg_loss = torch.stack(self.validation_losses).mean()
         accuracy = accuracy_score(targets, predictions)
         
         self.log_dict({'val_loss': avg_loss, 'val_acc': accuracy, 'step': self.current_epoch})
@@ -90,7 +103,8 @@ class HyenaDNAModule(L.LightningModule):
         self.validation_targets.clear()
         self.validation_losses.clear() 
 
-    # Testing        
+    # Testing
+         
     def test_step(self, batch, batch_idx):
         seq1, seq2, target = batch
         output = self(seq1, seq2)
@@ -133,7 +147,7 @@ class HyenaDNAModule(L.LightningModule):
         return optimizer
     
 
-class HyenaDNADataModule(L.LightningDataModule):
+class HyenaDNADataModule(pl.LightningDataModule):
     def __init__(self, data_path, tokenizer, batch_size, max_length, use_padding, add_eos):
         super().__init__()
         self.data_path = data_path
@@ -180,71 +194,80 @@ class HyenaDNADataModule(L.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(self.ds_test, batch_size=self.batch_size, shuffle=True)
 
-if __name__ == "__main__":
-    data_path = "/vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6"
-    max_length = 5000
-    use_padding = 'max_length'
-    add_eos = False
-    pretrained_model_name = 'hyenadna-small-32k-seqlen'
+# Optuna 
+def objective(trial):
+    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-3, log=True)
+    weight_decay = trial.suggest_float("weight_decay", 1e-6, 1e-2, log=True) 
+    dropout = trial.suggest_float("dropout", 0.2, 0.5)
+    batch_size = 64
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    loss_fn = torch.nn.BCEWithLogitsLoss()
-    backbone_cfg = None 
-    
-    
-    print(f"training on: {data_path}")
-    
-    logger = TensorBoardLogger("lightning_logs", log_graph=True)
-
-
-    cli = LightningCLI(
-        model_class=HyenaDNAModule,
-        datamodule_class=HyenaDNADataModule,
-        run=False,
-        save_config_callback=None,
-        seed_everything_default=42,
-        trainer_defaults={
-                "max_epochs": 10,
-                "callbacks": [ModelCheckpoint(monitor="val_acc", mode="max")],
-                "accelerator": "gpu"
-        }
-    )
-    cli.instantiate_trainer(
-        logger=logger,
-        accelerator='gpu',
-        devices=-1,
-        precision=16,
-        strategy='ddp'
-    )
-    
     tokenizer = standalone_hyenadna.CharacterTokenizer(
         characters=['A', 'C', 'T', 'G', 'N'],
         model_max_length=max_length + 2,
         add_special_tokens=False,
         padding_side='left',
     )
-    
+
     model = HyenaDNAModule(
-        cli.model.pretrained_model_name,
-        backbone_cfg,
-        loss_fn,
-        cli.model.learning_rate,
-        cli.model.weight_decay,
-        cli.model.device,
+        pretrained_model_name=pretrained_model_name,
+        backbone_cfg=backbone_cfg,
+        loss_fn=loss_fn,
+        learning_rate=learning_rate,
+        weight_decay=weight_decay,
+        dropout=dropout,
+        device="cuda" if torch.cuda.is_available() else "cpu"
     )
     
     data_module = HyenaDNADataModule(
         data_path=data_path,
         tokenizer=tokenizer,
-        batch_size=cli.datamodule.batch_size,
+        batch_size=batch_size,
         max_length=max_length,
         use_padding=use_padding,
         add_eos=add_eos,
     )
     
-    cli.trainer.fit(model, datamodule=data_module)
+    logger = TensorBoardLogger(save_dir="lightning_logs",log_graph=True)
 
-    cli.trainer.test(model, dataloaders=data_module.test_dataloader())
+    trainer = pl.Trainer(
+        max_epochs=50,
+        logger=logger,
+        callbacks=[PyTorchLightningPruningCallback(trial, monitor="val_acc")],
+        accelerator="gpu" if torch.cuda.is_available() else "cpu",
+        devices=1,
+        precision=16,
+        strategy='auto'
+    )
+    hyperparameters = dict(learning_rate=learning_rate, weight_decay=weight_decay, dropout=dropout)
+    trainer.logger.log_hyperparams(hyperparameters)
+    trainer.fit(model, datamodule=data_module)
     
-    logger.finalize('success')
+    logger.finalize("success")
+
+    return trainer.callback_metrics["val_acc"].item()
+
+if __name__ == "__main__":
+    data_path = "/vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6"
+    max_length = 5000
+    use_padding = 'max_length'
+    add_eos = False
+    pretrained_model_name = 'hyenadna-small-32k-seqlen'
+    loss_fn = torch.nn.BCEWithLogitsLoss()
+    backbone_cfg = None 
+
+    pruner = optuna.pruners.MedianPruner() 
+
+    study = optuna.create_study(direction="maximize", pruner=pruner)
+    study.optimize(objective, n_trials=10)
+
+    print("Number of finished trials: {}".format(len(study.trials)))
+
+    print("Best trial:")
+    trial = study.best_trial
+
+    print("  Value: {}".format(trial.value))
+
+    print("  Params: ")
+    for key, value in trial.params.items():
+        print("    {}: {}".format(key, value))
     

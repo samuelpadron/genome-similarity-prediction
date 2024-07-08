@@ -21,6 +21,10 @@ numerize
 git-lfs
 seaborn
 jsonargparse[signatures]>=4.27.7
+# hyperparameter optimization
+optuna
+optuna-integration
+
 # Dataset specific packages
 torchtext==0.14.0 # this needs to align with the pytorch version
 datasets # LRA

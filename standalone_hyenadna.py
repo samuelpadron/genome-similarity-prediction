@@ -920,12 +920,12 @@ class HyenaDNAModel(nn.Module):
         
         
 class PredictionHead(nn.Module):
-    def __init__(self, input_size, hidden_size, dropout_prob=0.2):
+    def __init__(self, input_size, hidden_size, dropout=0.0):
         super().__init__()
         self.fc1 = nn.Linear(hidden_size * 4, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.fc_out = nn.Linear(hidden_size,1)
-        self.dropout = nn.Dropout(dropout_prob)
+        self.dropout = nn.Dropout(dropout)
         self.conv1d = nn.Conv1d(hidden_size, hidden_size, kernel_size=3, padding=1)
 
     def forward(self, hidden_states_seq1, hidden_states_seq2):
@@ -970,7 +970,7 @@ class SeqPairPredictionModel(nn.Module):
                  layer=None, attn_layer_idx=None, attn_cfg=None, max_position_embeddings=0,
                  resid_dropout: float = 0.0, embed_dropout: float = 0.1,
                  layer_norm_epsilon: float = 1e-5, initializer_cfg=None,residual_in_fp32=False,
-                 pad_vocab_size_multiple: int = 1, use_head=True,
+                 pad_vocab_size_multiple: int = 1, use_head=True, dropout=0.0,
                  device=None, dtype=None, **kwargs) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super().__init__()
@@ -996,7 +996,7 @@ class SeqPairPredictionModel(nn.Module):
         for param in self.backbone.parameters():
             param.requires_grad = False
          
-        self.head = PredictionHead(input_size=d_model, hidden_size=d_model)
+        self.head = PredictionHead(input_size=d_model, hidden_size=d_model, dropout=dropout)
     
 
     def forward(self, seq1, seq2, position_ids=None, state=None): # state for the repo interface
