@@ -18,7 +18,7 @@ from sklearn.metrics import accuracy_score
 
 
 class HyenaDNAModule(pl.LightningModule):
-    def __init__(self, pretrained_model_name, backbone_cfg, loss_fn, learning_rate, weight_decay, dropout, device):
+    def __init__(self, pretrained_model_name, backbone_cfg, loss_fn, learning_rate, weight_decay, dropout, output_dims, device):
         super().__init__()
         self.save_hyperparameters()
         self.model = huggingface.HyenaDNAPreTrainedModel.from_pretrained(
@@ -27,6 +27,7 @@ class HyenaDNAModule(pl.LightningModule):
             download=False,
             config=backbone_cfg,
             dropout=dropout,
+            output_dims=output_dims,
             device=device,
         )    
         self.pretrained_model_name= pretrained_model_name    
@@ -40,12 +41,9 @@ class HyenaDNAModule(pl.LightningModule):
         self.test_predictions = []
         self.test_targets = []
 
-        
     # Training
-      
     def forward(self, seq1, seq2):
         return self.model(seq1, seq2)
-    
     
     def training_step(self, batch, batch_idx):
         seq1, seq2, target = batch
@@ -54,20 +52,16 @@ class HyenaDNAModule(pl.LightningModule):
         
         self.training_losses.append(loss.cpu())
         
-        self.log_dict({"train_loss": loss, "step": self.current_epoch})
-        
-        # accumulate avg loss over epoch
+        self.log("train_loss", loss, on_step=True, on_epoch=True)
         
         return loss
-    
     
     def on_train_epoch_end(self):
         avg_loss = torch.stack(self.training_losses).mean()
         
-        self.log_dict({"train_loss": avg_loss, "step": self.current_epoch})
+        self.log("train_loss_epoch", avg_loss, on_epoch=True)
   
     # Validation
-
     def validation_step(self, batch, batch_idx):
         seq1, seq2, target = batch
         output = self(seq1, seq2)
@@ -78,9 +72,7 @@ class HyenaDNAModule(pl.LightningModule):
         self.validation_targets.append(target.cpu())
         self.validation_losses.append(loss.cpu())
     
-    
     def on_validation_epoch_end(self):
-        # make confusion matrix
         predictions = torch.cat(self.validation_predictions).numpy()
         targets = torch.cat(self.validation_targets).numpy()
         
@@ -93,18 +85,17 @@ class HyenaDNAModule(pl.LightningModule):
         
         self.logger.experiment.add_figure("Confusion matrix", fig, self.current_epoch)
 
-        # accumulate validation step loss and accuracy
         avg_loss = torch.stack(self.validation_losses).mean()
         accuracy = accuracy_score(targets, predictions)
         
-        self.log_dict({'val_loss': avg_loss, 'val_acc': accuracy, 'step': self.current_epoch})
+        self.log("val_loss", avg_loss, on_epoch=True)
+        self.log("val_acc", accuracy, on_epoch=True)
 
         self.validation_predictions.clear()
         self.validation_targets.clear()
         self.validation_losses.clear() 
 
     # Testing
-         
     def test_step(self, batch, batch_idx):
         seq1, seq2, target = batch
         output = self(seq1, seq2)
@@ -196,9 +187,12 @@ class HyenaDNADataModule(pl.LightningDataModule):
 
 # Optuna 
 def objective(trial):
-    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-3, log=True)
-    weight_decay = trial.suggest_float("weight_decay", 1e-6, 1e-2, log=True) 
-    dropout = trial.suggest_float("dropout", 0.2, 0.5)
+    learning_rate = 0.0006114290186620201
+    weight_decay = 9.09419648044031e-05
+    dropout = 0.33878600984991813
+    n_layers = 1
+    output_dims = [516]
+
     batch_size = 64
 
     tokenizer = standalone_hyenadna.CharacterTokenizer(
@@ -215,6 +209,7 @@ def objective(trial):
         learning_rate=learning_rate,
         weight_decay=weight_decay,
         dropout=dropout,
+        output_dims=output_dims,
         device="cuda" if torch.cuda.is_available() else "cpu"
     )
     
@@ -227,10 +222,11 @@ def objective(trial):
         add_eos=add_eos,
     )
     
-    logger = TensorBoardLogger(save_dir="lightning_logs",log_graph=True)
+    logger = TensorBoardLogger(save_dir="optuna", log_graph=True)
+    print(f"Logger initialized: {logger}")
 
     trainer = pl.Trainer(
-        max_epochs=50,
+        max_epochs=10,
         logger=logger,
         callbacks=[PyTorchLightningPruningCallback(trial, monitor="val_acc")],
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
@@ -258,7 +254,7 @@ if __name__ == "__main__":
     pruner = optuna.pruners.MedianPruner() 
 
     study = optuna.create_study(direction="maximize", pruner=pruner)
-    study.optimize(objective, n_trials=10)
+    study.optimize(objective, n_trials=1)
 
     print("Number of finished trials: {}".format(len(study.trials)))
 
@@ -270,4 +266,3 @@ if __name__ == "__main__":
     print("  Params: ")
     for key, value in trial.params.items():
         print("    {}: {}".format(key, value))
-    

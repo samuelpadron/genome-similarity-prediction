@@ -86,6 +86,7 @@ class HyenaDNAPreTrainedModel(PreTrainedModel):
                         path,
                         model_name,
                         dropout,
+                        output_dims,
                         download=False,
                         config=None,
                         device='cpu',
@@ -109,7 +110,7 @@ class HyenaDNAPreTrainedModel(PreTrainedModel):
                 config = json.load(open(os.path.join(pretrained_model_name_or_path, 'config.json')))
 
         if custom:
-            scratch_model = SeqPairPredictionModel(**config, use_head=use_head, n_classes=n_classes, dropout=dropout)  # the new model format
+            scratch_model = SeqPairPredictionModel(**config, use_head=use_head, n_classes=n_classes, dropout=dropout, output_dims=output_dims)  # the new model format
         else:
             scratch_model = HyenaDNAModel(**config, use_head=use_head, n_classes=n_classes)  # the new model format
             

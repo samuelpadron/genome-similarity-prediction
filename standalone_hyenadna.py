@@ -920,11 +920,17 @@ class HyenaDNAModel(nn.Module):
         
         
 class PredictionHead(nn.Module):
-    def __init__(self, input_size, hidden_size, dropout=0.0):
+    def __init__(self, input_size, hidden_size, dropout=1.0, output_dims=[]):
         super().__init__()
         self.fc1 = nn.Linear(hidden_size * 4, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc_out = nn.Linear(hidden_size,1)
+        self.hidden_layers = nn.ModuleList()
+
+        prev_size = hidden_size
+        for dim in output_dims:
+            self.hidden_layers.append(nn.Linear(prev_size, dim))
+            prev_size = dim
+
+        self.fc_out = nn.Linear(prev_size,1)
         self.dropout = nn.Dropout(dropout)
         self.conv1d = nn.Conv1d(hidden_size, hidden_size, kernel_size=3, padding=1)
 
@@ -949,8 +955,12 @@ class PredictionHead(nn.Module):
         x = F.leaky_relu(self.fc1(x))
         x = self.dropout(x)
 
-        x = F.leaky_relu(self.fc2(x))
-        x = self.dropout(x)
+        ### CONSTRUCTION ZONEEEE
+        for layer in self.hidden_layers:
+            x = F.leaky_relu(layer(x))
+            x = self.dropout(x)
+
+        ###################################
     
         # [B, 256]
         x = F.leaky_relu(self.fc_out(x))
@@ -970,7 +980,7 @@ class SeqPairPredictionModel(nn.Module):
                  layer=None, attn_layer_idx=None, attn_cfg=None, max_position_embeddings=0,
                  resid_dropout: float = 0.0, embed_dropout: float = 0.1,
                  layer_norm_epsilon: float = 1e-5, initializer_cfg=None,residual_in_fp32=False,
-                 pad_vocab_size_multiple: int = 1, use_head=True, dropout=0.0,
+                 pad_vocab_size_multiple: int = 1, use_head=True, dropout=0.0, output_dims=[],
                  device=None, dtype=None, **kwargs) -> None:
         factory_kwargs = {'device': device, 'dtype': dtype}
         super().__init__()
@@ -996,7 +1006,7 @@ class SeqPairPredictionModel(nn.Module):
         for param in self.backbone.parameters():
             param.requires_grad = False
          
-        self.head = PredictionHead(input_size=d_model, hidden_size=d_model, dropout=dropout)
+        self.head = PredictionHead(input_size=d_model, hidden_size=d_model, dropout=dropout, output_dims=output_dims)
     
 
     def forward(self, seq1, seq2, position_ids=None, state=None): # state for the repo interface
