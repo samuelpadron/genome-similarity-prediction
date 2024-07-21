@@ -3,17 +3,17 @@ from sklearn.model_selection import train_test_split
 
 class DatasetSplitter:
 
-  def __init__(self, split_ratio, data_path):
-    self.split_ratio = split_ratio
-    self.data_path = data_path
-    self.data = self.set_split(self.split_ratio, self.setup_data())
+  def __init__(self, train_ratio, val_ratio, test_ratio, data_path):
+        self.data_path = data_path
+        self.data = self.set_split(train_ratio, val_ratio, test_ratio, self.setup_data())
 
-  def set_split(self, split_ratio, data: pd.DataFrame):
 
-    # shuffle since first half of the dataset is all true and the second half all false
-    train_data,test_data = train_test_split(data, train_size=split_ratio, shuffle=True)
-    
-    return train_data, test_data
+  def set_split(self, train_ratio, val_ratio, test_ratio, data):
+        train_data, temp = train_test_split(data, train_size=train_ratio, shuffle=True)
+        val_ratio_adjusted = val_ratio / (val_ratio + test_ratio)
+        val_data, test_data = train_test_split(temp, train_size=val_ratio_adjusted, shuffle=True)
+        
+        return train_data, val_data, test_data
 
 
   def setup_data(self):

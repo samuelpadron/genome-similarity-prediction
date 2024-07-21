@@ -6,6 +6,7 @@ import standalone_hyenadna
 from torch.utils.data import DataLoader
 from utils.dataset_splitter import DatasetSplitter
 from src.dataloaders.datasets.pair_alignment_dataset import SequencePairSimilarityDataset
+import lightning as L
 import os
 import sys
 
@@ -65,15 +66,23 @@ class HyenaDNADataModule(pl.LightningDataModule):
         self.add_eos = add_eos
     
     def setup(self, stage=None):
-        splitter = DatasetSplitter(0.7, self.data_path)
-        train_data, test_data = splitter.data
+        splitter = DatasetSplitter(train_ratio=0.7, val_ratio=0.30, test_ratio=0.0, data_path=self.data_path)
+        train_data, val_data, test_data = splitter.data
         
         self.ds_train = SequencePairSimilarityDataset(
             train_data,
             max_length=self.max_length,
             tokenizer=self.tokenizer,
             use_padding=self.use_padding,
-            add_eos=self.add_eos,
+            add_eos=self.add_eos
+        )
+        
+        self.ds_val = SequencePairSimilarityDataset(
+            val_data,
+            max_length=self.max_length,
+            tokenizer=self.tokenizer,
+            use_padding=self.use_padding,
+            add_eos=self.add_eos
         )
         
         self.ds_test = SequencePairSimilarityDataset(
@@ -81,14 +90,17 @@ class HyenaDNADataModule(pl.LightningDataModule):
             max_length=self.max_length,
             tokenizer=self.tokenizer,
             use_padding=self.use_padding,
-            add_eos=self.add_eos,
+            add_eos=self.add_eos
         )
     
     def train_dataloader(self):
         return DataLoader(self.ds_train, batch_size=self.batch_size, shuffle=True)
     
     def val_dataloader(self):
-        return DataLoader(self.ds_test, batch_size=self.batch_size, shuffle=False)
+        return DataLoader(self.ds_val, batch_size=self.batch_size, shuffle=True)
+    
+    def test_dataloader(self):
+        return DataLoader(self.ds_test, batch_size=self.batch_size, shuffle=True)
 
 if __name__ == "__main__":
     job_id = sys.argv[1]
@@ -97,8 +109,9 @@ if __name__ == "__main__":
     weight_decay = float(sys.argv[4]) if len(sys.argv) > 4 else 0.1
     num_epochs = 100
     
+    data_path = "/vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6"
     pretrained_model_name = 'hyenadna-small-32k-seqlen'
-    max_length = 32000
+    max_length = 5000
     use_padding = 'max_length'
     add_eos = False
     
@@ -123,7 +136,7 @@ if __name__ == "__main__":
     )
     
     data_module = HyenaDNADataModule(
-        data_path='/vol/csedu-nobackup/project/spadronalcala/pair_alignment/galGal6_1024_13370',
+        data_path=data_path,
         tokenizer=tokenizer,
         batch_size=batch_size,
         max_length=max_length,
