@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 def parse_maf(maf_file, output_csv):
     max_length = 5000
-    max_sequences = 8000
+    max_sequences = 16000
     
     with open(maf_file, 'r') as file_in, open(output_csv, 'w', newline='') as file_out:
         writer = csv.writer(file_out)

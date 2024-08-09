@@ -149,7 +149,7 @@ class HyenaDNADataModule(pl.LightningDataModule):
         self.add_eos = add_eos
     
     def setup(self, stage=None):
-        splitter = DatasetSplitter(train_ratio=0.7, val_ratio=0.15, test_ratio=0.15, data_path=self.data_path)
+        splitter = DatasetSplitter(size=16000, train_ratio=0.7, val_ratio=0.15, test_ratio=0.15, data_path=self.data_path)
         train_data, val_data, test_data = splitter.data
         
         self.ds_train = SequencePairSimilarityDataset(
@@ -187,9 +187,9 @@ class HyenaDNADataModule(pl.LightningDataModule):
 
 # Optuna 
 def objective(trial):
-    learning_rate = 0.0006114290186620201
-    weight_decay = 9.09419648044031e-05
-    dropout = 0.33878600984991813
+    learning_rate = 6e-4
+    weight_decay = 0.001
+    dropout = 0.5
     n_layers = 1
     output_dims = [516]
 
@@ -237,6 +237,8 @@ def objective(trial):
     hyperparameters = dict(learning_rate=learning_rate, weight_decay=weight_decay, dropout=dropout)
     trainer.logger.log_hyperparams(hyperparameters)
     trainer.fit(model, datamodule=data_module)
+    
+    trainer.test(model, dataloaders=data_module.test_dataloader())
     
     logger.finalize("success")
 
